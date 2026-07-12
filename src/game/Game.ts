@@ -10,6 +10,13 @@ export interface HudState {
   won: boolean;
 }
 
+export interface MinimapState {
+  x: number;
+  z: number;
+  heading: number;
+  collectibles: Array<{ x: number; z: number; taken: boolean }>;
+}
+
 // Third-person camera tuning.
 const CAM_MIN_DIST = 4;
 const CAM_MAX_DIST = 16;
@@ -41,6 +48,8 @@ export class Game {
   private score = 0;
   private won = false;
   onHud?: (hud: HudState) => void;
+  onMinimap?: (state: MinimapState) => void;
+  private minimapCollectibles: Array<{ x: number; z: number; taken: boolean }> = [];
 
   // Confetti particle burst pool.
   private particles: THREE.Points;
@@ -245,6 +254,24 @@ export class Game {
     // --- shadow camera follows player ---
     this.sun.position.set(pp.x + 40, pp.y + 65, pp.z + 28);
     this.sun.target.position.set(pp.x, pp.y, pp.z);
+
+    this.emitMinimap(pp);
+  }
+
+  private emitMinimap(pp: THREE.Vector3) {
+    if (!this.onMinimap) return;
+    const list = this.world.collectibleList;
+    if (this.minimapCollectibles.length !== list.length) {
+      this.minimapCollectibles = list.map((c) => ({ x: c.mesh.position.x, z: c.mesh.position.z, taken: c.taken }));
+    } else {
+      for (let i = 0; i < list.length; i++) this.minimapCollectibles[i].taken = list[i].taken;
+    }
+    this.onMinimap({
+      x: pp.x,
+      z: pp.z,
+      heading: this.player.heading,
+      collectibles: this.minimapCollectibles,
+    });
   }
 
   /**
