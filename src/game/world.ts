@@ -28,30 +28,13 @@ const PALETTE = {
   scoopBlue: new THREE.Color("#a8d8f0"),
 };
 
-/** Fixed chocolate-pond landmarks — dipped straight into the height field so
- * physics, collision and the rendered mesh all agree automatically. */
-export const PONDS: Array<{ x: number; z: number; r: number }> = [
-  { x: 26, z: -22, r: 9 },
-  { x: -38, z: 28, r: 7.5 },
-  { x: 8, z: 58, r: 8.5 },
-];
-const POND_FLOOR = SEA_LEVEL - 0.8;
-
 export function terrainHeight(x: number, z: number): number {
   const d = Math.hypot(x, z) / ISLAND_RADIUS;
   // Island falloff: 1 at the center, dips below sea toward the rim.
   const falloff = 1 - THREE.MathUtils.smoothstep(d, 0.55, 1.02);
   const base = fbm2(x * 0.012 + 7.3, z * 0.012 - 2.1, 4) * 14;
   const ridges = fbm2(x * 0.035 - 3.7, z * 0.035 + 9.4, 3) * 3.5;
-  let h = (base + ridges - 4.5) * falloff - (1 - falloff) * 6;
-
-  for (const p of PONDS) {
-    const pd = Math.hypot(x - p.x, z - p.z) / p.r;
-    if (pd >= 1) continue;
-    const dip = 1 - THREE.MathUtils.smoothstep(pd, 0, 1);
-    h = h * (1 - dip) + POND_FLOOR * dip;
-  }
-  return h;
+  return (base + ridges - 4.5) * falloff - (1 - falloff) * 6;
 }
 
 /** Approximate terrain normal via central differences. */
@@ -159,62 +142,6 @@ function buildSea(scene: THREE.Scene, disposables: Disposable[]): THREE.Mesh {
   return sea;
 }
 
-function buildPonds(scene: THREE.Scene, disposables: Disposable[]): THREE.Mesh[] {
-  const mat = new THREE.MeshLambertMaterial({
-    color: PALETTE.chocolate,
-    transparent: true,
-    opacity: 0.95,
-  });
-  disposables.push(mat);
-  const pools: THREE.Mesh[] = [];
-  for (const p of PONDS) {
-    const geo = new THREE.CircleGeometry(p.r * 0.92, 28);
-    geo.rotateX(-Math.PI / 2);
-    const pool = new THREE.Mesh(geo, mat);
-    pool.position.set(p.x, SEA_LEVEL - 0.5, p.z);
-    scene.add(pool);
-    disposables.push(geo);
-    pools.push(pool);
-  }
-  return pools;
-}
-
-/** Rainbow sprinkles scattered along a spiral path out from spawn. */
-function buildSprinklePath(scene: THREE.Scene, rng: () => number, disposables: Disposable[]) {
-  const colors = [
-    new THREE.Color("#ff6b9d"),
-    new THREE.Color("#ffd166"),
-    new THREE.Color("#6bcbff"),
-    new THREE.Color("#8affc1"),
-    new THREE.Color("#c9a0ff"),
-  ];
-  const mats = colors.map((c) => new THREE.MeshLambertMaterial({ color: c }));
-  disposables.push(...mats);
-  const geo = new THREE.CapsuleGeometry(0.09, 0.3, 2, 5);
-  geo.rotateZ(Math.PI / 2);
-  disposables.push(geo);
-
-  const batches: PropTransform[][] = mats.map(() => []);
-  for (let i = 0; i < 70; i++) {
-    const angle = i * 0.32;
-    const radius = 4 + i * 1.15;
-    if (radius > ISLAND_RADIUS * 0.95) break;
-    const x = Math.cos(angle) * radius;
-    const z = Math.sin(angle) * radius;
-    const h = terrainHeight(x, z);
-    if (h < SEA_LEVEL + 0.4) continue; // skip sea/pond crossings
-    const bi = Math.floor(rng() * mats.length);
-    batches[bi].push({
-      pos: new THREE.Vector3(x, h + 0.1, z),
-      rotY: rng() * Math.PI * 2,
-      scale: 0.8 + rng() * 0.5,
-    });
-  }
-  batches.forEach((batch, bi) => {
-    instancedProp(scene, disposables, [{ geo, mat: mats[bi], offset: new THREE.Vector3(0, 0, 0), castShadow: false }], batch);
-  });
-}
-
 /** Rejection-sample spawn spots on land, away from other used spots. */
 function scatter(
   rng: () => number,
@@ -238,7 +165,7 @@ function scatter(
     if (h < minH || h > maxH) continue;
     terrainNormal(x, z, n);
     if (1 - n.y > maxSlope) continue;
-    let ok = PONDS.every((p) => Math.hypot(x - p.x, z - p.z) > p.r + 1.5);
+    let ok = true;
     for (const u of used) {
       if (Math.hypot(u.x - x, u.z - z) < minDist) {
         ok = false;
@@ -523,11 +450,9 @@ export function buildWorld(scene: THREE.Scene): WorldRefs {
   buildSky(scene, disposables);
   buildTerrain(scene, disposables);
   const sea = buildSea(scene, disposables);
-  const ponds = buildPonds(scene, disposables);
   // Collectibles scatter first so the densely packed props can't crowd them out.
   const collectibleList = buildCollectibles(scene, rng, used, disposables);
   buildProps(scene, rng, used, disposables, solidColliders, canopyColliders);
-  buildSprinklePath(scene, rng, disposables);
   const clouds = buildClouds(scene, rng, disposables);
 
   const animated: Array<(t: number, dt: number) => void> = [];
@@ -542,9 +467,6 @@ export function buildWorld(scene: THREE.Scene): WorldRefs {
       c.mesh.position.y = c.baseY + Math.sin(t * 2.2 + c.phase) * 0.25;
     }
     sea.position.y = SEA_LEVEL + Math.sin(t * 0.7) * 0.06;
-    ponds.forEach((pool, i) => {
-      pool.position.y = SEA_LEVEL - 0.5 + Math.sin(t * 0.9 + i * 2) * 0.04;
-    });
   });
 
   return {

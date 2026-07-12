@@ -1,5 +1,4 @@
-import { Game, HudState, MinimapState } from "./game/Game";
-import { ISLAND_RADIUS } from "./game/world";
+import { Game, HudState } from "./game/Game";
 
 const isTouchDevice = "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
@@ -9,7 +8,6 @@ app.innerHTML = `
 
   <div id="hud" class="hidden">
     <div id="score-pill">🍦 <span id="score">0</span> / <span id="total">0</span></div>
-    <canvas id="minimap" width="150" height="150"></canvas>
     <div id="hint" class="${isTouchDevice ? "hidden" : ""}">
       WASD / arrows move · Space jump · Shift sprint · drag to look · scroll to zoom
     </div>
@@ -55,63 +53,6 @@ game.onHud = (hud: HudState) => {
   scoreEl.textContent = String(hud.score);
   totalEl.textContent = String(hud.total);
   winBanner.classList.toggle("hidden", !hud.won);
-};
-
-const minimap = document.getElementById("minimap") as HTMLCanvasElement;
-const mmCtx = minimap.getContext("2d")!;
-const MM_SIZE = 150;
-const MM_RADIUS = MM_SIZE / 2 - 6;
-const MM_SCALE = MM_RADIUS / (ISLAND_RADIUS * 1.08);
-
-game.onMinimap = (s: MinimapState) => {
-  const cx = MM_SIZE / 2;
-  const cy = MM_SIZE / 2;
-  mmCtx.clearRect(0, 0, MM_SIZE, MM_SIZE);
-
-  // sea backdrop
-  mmCtx.beginPath();
-  mmCtx.arc(cx, cy, MM_RADIUS, 0, Math.PI * 2);
-  mmCtx.fillStyle = "rgba(191, 232, 242, 0.9)";
-  mmCtx.fill();
-  mmCtx.strokeStyle = "rgba(255,255,255,0.9)";
-  mmCtx.lineWidth = 3;
-  mmCtx.stroke();
-
-  // island
-  mmCtx.beginPath();
-  mmCtx.arc(cx, cy, ISLAND_RADIUS * 0.9 * MM_SCALE, 0, Math.PI * 2);
-  mmCtx.fillStyle = "rgba(168, 230, 193, 0.85)";
-  mmCtx.fill();
-
-  // collectibles
-  for (const c of s.collectibles) {
-    if (c.taken) continue;
-    mmCtx.beginPath();
-    mmCtx.arc(cx + c.x * MM_SCALE, cy + c.z * MM_SCALE, 2.4, 0, Math.PI * 2);
-    mmCtx.fillStyle = "#ff6b9d";
-    mmCtx.fill();
-  }
-
-  // player marker (triangle pointing in facing direction)
-  const px = cx + s.x * MM_SCALE;
-  const py = cy + s.z * MM_SCALE;
-  mmCtx.save();
-  mmCtx.translate(px, py);
-  // world +X maps to canvas +X, world +Z maps to canvas +Y; heading is
-  // measured so that (sin h, cos h) is the facing direction in world XZ,
-  // so mirror the canvas rotation (rotate(-heading)) to match.
-  mmCtx.rotate(-s.heading);
-  mmCtx.beginPath();
-  mmCtx.moveTo(0, 7);
-  mmCtx.lineTo(5, -6);
-  mmCtx.lineTo(-5, -6);
-  mmCtx.closePath();
-  mmCtx.fillStyle = "#ec4899";
-  mmCtx.fill();
-  mmCtx.strokeStyle = "#fff";
-  mmCtx.lineWidth = 1.5;
-  mmCtx.stroke();
-  mmCtx.restore();
 };
 
 document.getElementById("play-btn")!.addEventListener("click", () => {
