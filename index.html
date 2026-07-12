@@ -90,6 +90,59 @@
     border-color:#fff;transform:scale(1.06)}
   .flavBtn:active{transform:scale(.92)}
   @media (max-width:700px){ .flavBtn{width:48px;height:48px;font-size:21px} #mixPanel{right:10px;bottom:20px;gap:7px} }
+
+  /* ---- HUD buttons (map + settings) ---- */
+  #hudBtns{position:absolute;top:56px;right:16px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
+  .hudBtn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);cursor:pointer;
+    font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+    box-shadow:0 4px 14px rgba(70,15,110,.35);transition:transform .12s}
+  .hudBtn:active{transform:scale(.9)}
+  @media (max-width:700px){ #hudBtns{top:74px;right:12px} .hudBtn{width:40px;height:40px;font-size:18px} }
+
+  /* ---- overlays (world map + settings) ---- */
+  .overlay{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;padding:22px;background:radial-gradient(ellipse at 50% 30%, rgba(255,95,200,.94) 0%, rgba(169,79,214,.96) 48%, rgba(100,64,217,.97) 100%);
+    backdrop-filter:blur(6px)}
+  .overlay.show{display:flex}
+  .overlay h2{font-family:'Titan One',cursive;font-size:clamp(28px,6vw,46px);
+    text-shadow:0 3px 0 #e0359e, 0 6px 0 #8a2fd0, 0 12px 30px rgba(70,15,120,.6)}
+  .overlay .closeX{position:absolute;top:18px;right:18px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,.55);
+    background:rgba(255,255,255,.18);color:#fff;font-size:20px;font-weight:700;cursor:pointer;backdrop-filter:blur(6px)}
+  .overlay .closeX:active{transform:scale(.9)}
+
+  #mapCards{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;max-width:860px}
+  .mapCard{width:230px;border-radius:24px;padding:20px 16px;text-align:center;cursor:pointer;position:relative;
+    background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.45);backdrop-filter:blur(10px);
+    transition:transform .15s, box-shadow .2s}
+  .mapCard:not(.locked):hover{transform:translateY(-4px);box-shadow:0 14px 40px rgba(50,5,90,.5)}
+  .mapCard .big{font-size:52px;margin-bottom:6px;filter:drop-shadow(0 4px 8px rgba(70,15,110,.5))}
+  .mapCard h3{font-family:'Titan One',cursive;font-size:19px;margin-bottom:4px;text-shadow:0 2px 0 #d035ae}
+  .mapCard .desc{font-size:12.5px;opacity:.9;line-height:1.4;min-height:36px}
+  .mapCard .meta{margin-top:8px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.9}
+  .mapCard .stateTag{margin-top:10px;display:inline-block;padding:8px 20px;border-radius:999px;font-size:12px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;background:rgba(255,255,255,.25);border:1px solid rgba(255,255,255,.6)}
+  .mapCard.here{border-color:#FFE85C;box-shadow:0 0 24px rgba(255,232,92,.45)}
+  .mapCard.here .stateTag{background:#FFE85C;color:#7a2f9e}
+  .mapCard.done .big::after{content:' 🌈'}
+  .mapCard.locked{opacity:.55;cursor:not-allowed;filter:saturate(.4)}
+  .mapCard.locked .stateTag{background:rgba(0,0,0,.25)}
+  @keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-2.5deg)}75%{transform:rotate(2.5deg)}}
+  .mapCard.wiggling{animation:wiggle .3s ease 2}
+
+  #setPanel{width:min(400px,92vw);display:flex;flex-direction:column;gap:16px;
+    background:rgba(60,15,95,.42);border:1px solid rgba(255,255,255,.4);border-radius:26px;padding:24px 22px;
+    backdrop-filter:blur(12px)}
+  .setRow{display:flex;align-items:center;justify-content:space-between;gap:14px;font-size:14px;font-weight:600}
+  .setRow label{flex:1}
+  .setRow input[type=range]{flex:1.2;accent-color:#ff4fae;height:6px}
+  .setRow input[type=checkbox]{width:22px;height:22px;accent-color:#ff4fae}
+  .setRow select{padding:7px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.5);
+    background:rgba(255,255,255,.18);color:#fff;font-family:inherit;font-weight:600}
+  .setRow select option{color:#5a2a86}
+  #resetBtn{margin-top:4px;padding:11px;border-radius:999px;border:1px solid rgba(255,120,150,.7);cursor:pointer;
+    background:rgba(255,80,120,.25);color:#fff;font-family:inherit;font-weight:700;font-size:13px;letter-spacing:.08em}
+  #resetBtn:active{transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -110,8 +163,12 @@
   <div class="brand">ICE CREAM ADVENTURE</div>
   <div id="quest">🍦 Flavors mixed: <span id="questN">0</span>/6</div>
   <div id="mixPill">warming up the decks…</div>
-  <div class="keys" id="keysHint">Use the wheel to roam · drag to look · find the glowing scoops!</div>
+  <div class="keys" id="keysHint">Use the wheel to roam · drag to look · find the glowing scoops! · 🗺️ M = world map</div>
   <div id="toast"></div>
+  <div id="hudBtns">
+    <button class="hudBtn" id="mapBtn" aria-label="World map">🗺️</button>
+    <button class="hudBtn" id="setBtn" aria-label="Settings">⚙️</button>
+  </div>
 </div>
 
 <div id="stickWrap">
@@ -126,6 +183,27 @@
 <div id="mixPanel">
   <div class="mixTitle">DJ MIX</div>
   <!-- flavor buttons injected -->
+</div>
+
+<div class="overlay" id="mapOverlay">
+  <button class="closeX" data-close>✕</button>
+  <h2>WORLD MAP</h2>
+  <div id="mapCards"><!-- level cards injected --></div>
+  <div style="font-size:12px;opacity:.85;letter-spacing:.1em">mix all 6 flavors in a world to unlock the next one</div>
+</div>
+
+<div class="overlay" id="setOverlay">
+  <button class="closeX" data-close>✕</button>
+  <h2>SETTINGS</h2>
+  <div id="setPanel">
+    <div class="setRow"><label>🎵 Music volume</label><input type="range" id="setMusic" min="0" max="100"></div>
+    <div class="setRow"><label>🔔 Sound effects</label><input type="range" id="setSfx" min="0" max="100"></div>
+    <div class="setRow"><label>🪩 Bounce &amp; wobble</label><input type="checkbox" id="setMotion"></div>
+    <div class="setRow"><label>✨ Render quality</label>
+      <select id="setQuality"><option value="auto">Auto</option><option value="low">Battery saver</option></select>
+    </div>
+    <button id="resetBtn">Reset all progress</button>
+  </div>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -157,6 +235,39 @@ const flavorState={};   // key -> 'hidden' | 'carried' | 'mixed'
 FLAVORS.forEach(f=>flavorState[f.key]='hidden');
 const mixOn={};         // key -> bool (layer audible)
 
+/* ================= WORLDS (levels) ================= */
+const LEVELS=[
+  {name:'Sugarcloud World',emoji:'🍭',desc:'the OG candy party where it all began',
+   bpm:124,sky:['#ff3fbe','#e045e8','#9a4ff0','#7a55ee'],fog:0xc95fe0,
+   ground:'#a86ae8',hue:[255,340],hemi:[0xffb8ea,0x7a4fd0],sun:0xfff2e0,
+   roots:[55,55,65.4,49],
+   chords:[[220,261.6,329.6],[220,277.2,329.6],[261.9,220,261.6],[196,246.9,293.7]],
+   spots:[[19,14],[-21,17],[27,-20],[-30,-14],[3,36],[-8,-38]]},
+  {name:'Minty Meadow',emoji:'🍃',desc:'slow chill grooves in a fresh green valley',
+   bpm:104,sky:['#3fe8c8','#45d8e0','#4fa8f0','#5580ee'],fog:0x5fd8c8,
+   ground:'#5fd8a8',hue:[120,210],hemi:[0xb8ffe8,0x2f8a7a],sun:0xf0ffe0,
+   roots:[49,49,58.3,43.7],
+   chords:[[196,246.9,293.7],[196,261.6,329.6],[174.6,220,261.6],[164.8,207.7,246.9]],
+   spots:[[-17,20],[24,10],[-28,-18],[16,-28],[8,38],[-36,4]]},
+  {name:'Neon Nightclub',emoji:'🪩',desc:'fast beats under a glowing midnight sky',
+   bpm:140,sky:['#12083f','#3f1370','#8a1fae','#e03fae'],fog:0x4a1f8e,
+   ground:'#3f2a8e',hue:[230,330],hemi:[0x8a5fff,0x2a1060],sun:0xd0b8ff,
+   roots:[41.2,41.2,49,36.7],
+   chords:[[164.8,196,246.9],[164.8,207.7,246.9],[146.8,185,220],[196,233,293.7]],
+   spots:[[22,-16],[-24,12],[12,32],[-14,-32],[34,8],[-34,-8]]},
+];
+
+/* ================= SAVE / LOAD ================= */
+const SAVE_KEY='sugarcloud-save-v1';
+let save;
+try{ save=JSON.parse(localStorage.getItem(SAVE_KEY)||'null'); }catch(e){ save=null; }
+if(!save||typeof save!=='object')save={};
+save.level=Math.min(save.level||0,LEVELS.length-1);
+save.unlocked=Math.max(save.unlocked||1,save.level+1);
+save.mixed=save.mixed||{};
+save.settings=Object.assign({music:78,sfx:90,motion:true,quality:'auto'},save.settings||{});
+function persist(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(save)); }catch(e){} }
+
 /* ---------------- renderer ---------------- */
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0xc95fe0, 0.0072);
@@ -164,7 +275,12 @@ scene.fog = new THREE.FogExp2(0xc95fe0, 0.0072);
 const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, .1, 400);
 const renderer = new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth, innerHeight);
-renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile?1.6:2));
+function applyQuality(){
+  const cap=save.settings.quality==='low'?1:(isMobile?1.6:2);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,cap));
+  renderer.setSize(innerWidth,innerHeight);
+}
+applyQuality();
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -178,7 +294,8 @@ function canvasTex(draw,w=256,h=256){
   const t=new THREE.CanvasTexture(c); t.encoding=THREE.sRGBEncoding; return t;
 }
 
-scene.add(new THREE.HemisphereLight(0xffb8ea, 0x7a4fd0, .85));
+const hemiL=new THREE.HemisphereLight(0xffb8ea, 0x7a4fd0, .85);
+scene.add(hemiL);
 const sunL = new THREE.DirectionalLight(0xfff2e0, 1.55);
 sunL.position.set(26, 38, 18);
 sunL.castShadow = true;
@@ -217,11 +334,11 @@ function addHalo(parent,color,size,offset=[0,0,0]){
 }
 
 /* ---------------- sky ---------------- */
-{
-  const skyTex=canvasTex((g,w,h)=>{
+function makeSkyTex(pal){
+  return canvasTex((g,w,h)=>{
     const grad=g.createLinearGradient(0,0,0,h);
-    grad.addColorStop(0,'#ff3fbe'); grad.addColorStop(.36,'#e045e8');
-    grad.addColorStop(.7,'#9a4ff0'); grad.addColorStop(1,'#7a55ee');
+    grad.addColorStop(0,pal[0]); grad.addColorStop(.36,pal[1]);
+    grad.addColorStop(.7,pal[2]); grad.addColorStop(1,pal[3]);
     g.fillStyle=grad; g.fillRect(0,0,w,h);
     for(let i=0;i<60;i++){
       const x=rand(0,w), y=rand(0,h*.65), r=rand(25,120);
@@ -240,8 +357,11 @@ function addHalo(parent,color,size,offset=[0,0,0]){
       g.stroke();
     }
   },1024,1024);
-  const sky=new THREE.Mesh(new THREE.SphereGeometry(180,28,18),
-    new THREE.MeshBasicMaterial({map:skyTex, side:THREE.BackSide, fog:false}));
+}
+let skyMat;
+{
+  skyMat=new THREE.MeshBasicMaterial({map:makeSkyTex(LEVELS[0].sky), side:THREE.BackSide, fog:false});
+  const sky=new THREE.Mesh(new THREE.SphereGeometry(180,28,18), skyMat);
   scene.add(sky);
 }
 /* smiling sun swirl */
@@ -271,11 +391,11 @@ function addHalo(parent,color,size,offset=[0,0,0]){
 }
 
 /* ---------------- ground ---------------- */
-{
+function makeGroundTex(L){
   const groundTex=canvasTex((g,w,h)=>{
-    g.fillStyle='#a86ae8'; g.fillRect(0,0,w,h);
+    g.fillStyle=L.ground; g.fillRect(0,0,w,h);
     for(let i=0;i<120;i++){
-      g.fillStyle=`hsla(${rand(255,340)},92%,${rand(62,76)}%,.55)`;
+      g.fillStyle=`hsla(${rand(L.hue[0],L.hue[1])},92%,${rand(62,76)}%,.55)`;
       g.beginPath(); g.arc(rand(0,w),rand(0,h),rand(30,180),0,7); g.fill();
     }
     const cx=w/2, cy=h/2;
@@ -310,8 +430,12 @@ function addHalo(parent,color,size,offset=[0,0,0]){
     }
   },2048,2048);
   groundTex.anisotropy=8;
-  const ground=new THREE.Mesh(new THREE.CircleGeometry(62,72),
-    new THREE.MeshStandardMaterial({map:groundTex, roughness:.8}));
+  return groundTex;
+}
+let groundMat;
+{
+  groundMat=new THREE.MeshStandardMaterial({map:makeGroundTex(LEVELS[0]), roughness:.8});
+  const ground=new THREE.Mesh(new THREE.CircleGeometry(62,72), groundMat);
   ground.rotation.x=-Math.PI/2; ground.receiveShadow=true; scene.add(ground);
 }
 
@@ -553,8 +677,12 @@ let dust;
    FLAVOR PICKUPS — six glowing scoops hidden around the world
    ===================================================================== */
 const pickups=[];
-{
-  const spots=[[19,14],[-21,17],[27,-20],[-30,-14],[3,36],[-8,-38]];
+function clearPickups(){
+  pickups.forEach(p=>scene.remove(p.grp));
+  pickups.length=0;
+}
+function spawnPickups(spots){
+  clearPickups();
   FLAVORS.forEach((f,i)=>{
     const grp=new THREE.Group();
     const cone=new THREE.Mesh(new THREE.ConeGeometry(.5,1.1,12), mat(0xE8A84A,.1,{roughness:.6}));
@@ -579,6 +707,7 @@ const pickups=[];
     pickups.push({flavor:f,grp,ringPts,taken:false,bobP:rand(0,7)});
   });
 }
+spawnPickups(LEVELS[0].spots);
 
 /* =====================================================================
    FRIENDS
@@ -825,10 +954,10 @@ function confettiBurst(pos,color=null,count=16){
    ===================================================================== */
 let audioCtx=null,sfxBus=null,musicBus=null;
 let musicStart=0,started=false,megaMix=false;
-const BPM=124, BEAT=60/BPM;
+let BPM=124, BEAT=60/BPM;
 
 function ctx(){ if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  sfxBus=audioCtx.createGain(); sfxBus.gain.value=.9; sfxBus.connect(audioCtx.destination);}
+  sfxBus=audioCtx.createGain(); sfxBus.gain.value=save.settings.sfx/100; sfxBus.connect(audioCtx.destination);}
   audioCtx.resume(); return audioCtx; }
 
 function kick(t,bus,pitch=150){ const a=ctx(),o=a.createOscillator(),g=a.createGain();
@@ -865,8 +994,8 @@ function tom(t,bus,fq,vol=.2){ const a=ctx(),o=a.createOscillator(),g=a.createGa
   o.connect(g); g.connect(bus); o.start(t); o.stop(t+.2); }
 
 const C=261.6,D=293.7,E=329.6,G=392,A=440,hi=f=>f*2;
-const ROOTS=[55,55,65.4,49];
-const CHORDS=[[220,261.6,329.6],[220,277.2,329.6],[174.6*1.5,220,261.6],[196,246.9,293.7]];
+let ROOTS=[55,55,65.4,49];
+let CHORDS=[[220,261.6,329.6],[220,277.2,329.6],[174.6*1.5,220,261.6],[196,246.9,293.7]];
 
 /* each flavor = one layer scheduled per bar */
 const LAYERS={
@@ -907,12 +1036,23 @@ const LAYERS={
 };
 
 let barTimers=[],barRunning=false;
+function stopGroove(){
+  if(!barRunning)return;
+  barRunning=false;
+  barTimers.forEach(clearTimeout); barTimers=[];
+  if(musicBus&&audioCtx){
+    const mb=musicBus;
+    mb.gain.setTargetAtTime(.0001,audioCtx.currentTime,.12);
+    setTimeout(()=>{ try{mb.disconnect();}catch(e){} },900);
+    musicBus=null;
+  }
+}
 function startGroove(){
   const a=ctx();
   if(barRunning)return;
   barRunning=true;
   const bus=a.createGain(); bus.gain.setValueAtTime(.0001,a.currentTime);
-  bus.gain.linearRampToValueAtTime(.78,a.currentTime+.7);
+  bus.gain.linearRampToValueAtTime(save.settings.music/100,a.currentTime+.7);
   bus.connect(a.destination);
   musicBus=bus;
   musicStart=a.currentTime+.1;
@@ -1047,6 +1187,121 @@ FLAVORS.forEach(f=>{
   flavBtns[f.key]=b;
 });
 
+/* =====================================================================
+   WORLDS: travel, theming, and the map screen
+   ===================================================================== */
+let curLevel=0;
+function applyLevel(i){
+  curLevel=i; save.level=i;
+  const L=LEVELS[i];
+  /* re-theme the world */
+  scene.fog.color.set(L.fog);
+  skyMat.map=makeSkyTex(L.sky);
+  groundMat.map=makeGroundTex(L);
+  hemiL.color.set(L.hemi[0]); hemiL.groundColor.set(L.hemi[1]);
+  sunL.color.set(L.sun);
+  /* re-tune the groove */
+  BPM=L.bpm; BEAT=60/BPM; ROOTS=L.roots; CHORDS=L.chords;
+  /* reset the quest, then restore saved progress for this world */
+  megaMix=false;
+  depositQueue.length=0;
+  orbiters.forEach(o=>player.remove(o.mesh));
+  orbiters.length=0;
+  FLAVORS.forEach(f=>{
+    flavorState[f.key]='hidden'; mixOn[f.key]=false;
+    flavBtns[f.key].style.display='none'; flavBtns[f.key].classList.remove('on');
+  });
+  spawnPickups(L.spots);
+  const mixedSaved=save.mixed[i]||[];
+  mixedSaved.forEach(k=>{
+    const p=pickups.find(p=>p.flavor.key===k);
+    if(p){ p.taken=true; scene.remove(p.grp); }
+    flavorState[k]='mixed'; mixOn[k]=true;
+    flavBtns[k].style.display='flex'; flavBtns[k].classList.add('on');
+  });
+  if(mixedSaved.length===FLAVORS.length)megaMix=true;
+  player.position.set(0,0,8);
+  playerVel.set(0,0,0);
+  if(started){ stopGroove(); startGroove(); }
+  updateHUD(); persist();
+}
+
+/* ---- overlays ---- */
+const mapOverlay=document.getElementById('mapOverlay');
+const setOverlay=document.getElementById('setOverlay');
+const mapCards=document.getElementById('mapCards');
+function anyOverlayOpen(){ return mapOverlay.classList.contains('show')||setOverlay.classList.contains('show'); }
+function closeOverlays(){ mapOverlay.classList.remove('show'); setOverlay.classList.remove('show'); }
+document.querySelectorAll('.overlay [data-close]').forEach(b=>b.addEventListener('click',closeOverlays));
+
+function openMap(){
+  setOverlay.classList.remove('show');
+  mapCards.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const mixed=(save.mixed[i]||[]).length;
+    const locked=i>=save.unlocked;
+    const card=document.createElement('div');
+    card.className='mapCard'+(i===curLevel?' here':'')+(locked?' locked':'')+(mixed===FLAVORS.length?' done':'');
+    card.innerHTML=`<div class="big">${L.emoji}</div><h3>${L.name}</h3>
+      <div class="desc">${L.desc}</div>
+      <div class="meta">${L.bpm} BPM · 🍦 ${mixed}/${FLAVORS.length} mixed</div>
+      <div class="stateTag">${locked?'🔒 locked':(i===curLevel?'you are here':'▶ travel')}</div>`;
+    card.addEventListener('click',()=>{
+      if(locked){
+        card.classList.remove('wiggling'); void card.offsetWidth; card.classList.add('wiggling');
+        showToast('🔒 mix all 6 flavors in<br><span style="font-size:.55em">'+LEVELS[i-1].name+' to unlock</span>');
+        return;
+      }
+      closeOverlays();
+      if(i===curLevel)return;
+      applyLevel(i);
+      popSfx(); confettiBurst(player.position,null,18);
+      showToast(L.emoji+' '+L.name+'!<br><span style="font-size:.55em">'+L.desc+'</span>',3200);
+    });
+    mapCards.appendChild(card);
+  });
+  mapOverlay.classList.add('show');
+}
+document.getElementById('mapBtn').addEventListener('click',()=>{ popSfx(); openMap(); });
+
+/* ---- settings ---- */
+const setMusic=document.getElementById('setMusic');
+const setSfx=document.getElementById('setSfx');
+const setMotion=document.getElementById('setMotion');
+const setQuality=document.getElementById('setQuality');
+function openSettings(){
+  mapOverlay.classList.remove('show');
+  setMusic.value=save.settings.music;
+  setSfx.value=save.settings.sfx;
+  setMotion.checked=save.settings.motion;
+  setQuality.value=save.settings.quality;
+  setOverlay.classList.add('show');
+}
+document.getElementById('setBtn').addEventListener('click',()=>{ popSfx(); openSettings(); });
+setMusic.addEventListener('input',()=>{
+  save.settings.music=+setMusic.value; persist();
+  if(musicBus&&audioCtx)musicBus.gain.setTargetAtTime(save.settings.music/100,audioCtx.currentTime,.1);
+});
+setSfx.addEventListener('input',()=>{
+  save.settings.sfx=+setSfx.value; persist();
+  if(sfxBus)sfxBus.gain.value=save.settings.sfx/100;
+});
+setSfx.addEventListener('change',()=>popSfx());
+setMotion.addEventListener('change',()=>{ save.settings.motion=setMotion.checked; persist(); popSfx(); });
+setQuality.addEventListener('change',()=>{ save.settings.quality=setQuality.value; applyQuality(); persist(); popSfx(); });
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  if(!confirm('Reset all progress and settings?'))return;
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  location.reload();
+});
+
+addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeOverlays();
+  if((e.key==='m'||e.key==='M')&&started){
+    if(mapOverlay.classList.contains('show'))closeOverlays(); else openMap();
+  }
+});
+
 function collectFlavor(p){
   p.taken=true;
   flavorState[p.flavor.key]='carried';
@@ -1067,6 +1322,9 @@ function tryDeposit(){
 function doDeposit(f){
   flavorState[f.key]='mixed';
   mixOn[f.key]=true;
+  save.mixed[curLevel]=save.mixed[curLevel]||[];
+  if(!save.mixed[curLevel].includes(f.key))save.mixed[curLevel].push(f.key);
+  persist();
   flavBtns[f.key].style.display='flex';
   flavBtns[f.key].classList.add('on');
   /* remove orbiter for this flavor */
@@ -1085,6 +1343,13 @@ function doDeposit(f){
       for(let i=0;i<5;i++) setTimeout(()=>confettiBurst(DECK_POS,null,22),i*250);
       friends.forEach(fr=>fr.jumpT=1);
       updateHUD();
+      if(curLevel+1<LEVELS.length&&save.unlocked<curLevel+2){
+        save.unlocked=curLevel+2; persist();
+        setTimeout(()=>{
+          showToast(LEVELS[curLevel+1].emoji+' NEW WORLD UNLOCKED!<br><span style="font-size:.55em">open the map 🗺️ to travel</span>',4600);
+          depositSfx();
+        },4600);
+      }
     },1200);
   }
 }
@@ -1108,7 +1373,7 @@ function stickCenter(){
 function setKnob(dx,dy){ knob.style.transform=`translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`; }
 
 addEventListener('pointerdown',e=>{
-  if(e.target.closest('#enter')||e.target.closest('#mixPanel'))return;
+  if(e.target.closest('#enter')||e.target.closest('#mixPanel')||e.target.closest('#hudBtns')||e.target.closest('.overlay'))return;
   tapStart={x:e.clientX,y:e.clientY,t:performance.now(),id:e.pointerId};
   if(e.target.closest('#stickWrap')&&!joy.active){
     joy.active=true; joy.id=e.pointerId;
@@ -1216,7 +1481,7 @@ function animate(){
   const time=clock.elapsedTime;
   const {bp,punch}=beatInfo();
   const groove=started?1:.25;
-  const wob=reduceMotion?.3:1;
+  const wob=(reduceMotion||!save.settings.motion)?.3:1;
 
   /* movement */
   let mx=(keys['d']||keys['arrowright']?1:0)-(keys['a']||keys['arrowleft']?1:0)+joy.x;
@@ -1367,6 +1632,8 @@ function animate(){
 
   renderer.render(scene,camera);
 }
+/* restore the saved world (theme + progress) before the first frame */
+applyLevel(save.level);
 animate();
 
 addEventListener('resize',()=>{
