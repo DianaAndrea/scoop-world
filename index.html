@@ -29,15 +29,30 @@
 
   #hud{position:fixed;inset:0;pointer-events:none;z-index:20;display:none}
   #hud.show{display:block}
-  #hud .brand{position:absolute;top:16px;left:18px;font-family:'Titan One',cursive;font-size:26px;color:#fff;
+  #hud .brand{position:absolute;top:18px;left:20px;font-family:'Titan One',cursive;font-size:34px;color:#fff;
     text-shadow:0 3px 0 #d035ae, 0 6px 18px rgba(90,20,140,.7)}
-  #quest{position:absolute;top:58px;left:18px;font-size:16px;font-weight:700;letter-spacing:.06em;
-    padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);
+  #quest{position:absolute;top:70px;left:20px;font-size:22px;font-weight:800;letter-spacing:.04em;
+    padding:13px 26px;border-radius:999px;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5);
     backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6)}
-  #mixPill{position:absolute;top:16px;right:16px;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-    padding:12px 22px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);
-    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:56vw;
+  #mixPill{position:absolute;top:18px;right:18px;font-size:19px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:15px 28px;border-radius:999px;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5);
+    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:44vw;
     overflow:hidden;text-overflow:ellipsis}
+  /* ---- middle-top mix-speed score card ---- */
+  #scoreCard{position:absolute;top:16px;left:50%;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 30px 11px;border-radius:22px;
+    background:linear-gradient(165deg,rgba(44,10,80,.52),rgba(24,6,48,.62));
+    border:2px solid rgba(255,255,255,.42);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
+    box-shadow:0 10px 34px rgba(30,2,60,.45), inset 0 1px 0 rgba(255,255,255,.22);
+    text-shadow:0 1px 6px rgba(90,20,140,.6);text-align:center;min-width:190px}
+  #scoreCard .scLabel{font-size:12px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;opacity:.85}
+  #scoreCard .scTime{font-family:'Titan One',cursive;font-size:34px;line-height:1.05;color:#FFE85C;
+    text-shadow:0 2px 0 #d035ae,0 4px 14px rgba(255,232,92,.4)}
+  #scoreCard .scSub{font-size:12px;font-weight:700;letter-spacing:.04em;opacity:.92;margin-top:1px}
+  #scoreCard.run .scTime{color:#8FE8FF}
+  #scoreCard.win .scTime{color:#35E8A8}
+  #scoreCard.pulse{animation:scPulse .55s ease}
+  @keyframes scPulse{0%{transform:translateX(-50%) scale(1)}40%{transform:translateX(-50%) scale(1.14)}100%{transform:translateX(-50%) scale(1)}}
   #hud .keys{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.18em;
     text-transform:uppercase;opacity:.9;transition:opacity 1s;text-shadow:0 1px 8px rgba(90,20,140,.8);text-align:center;width:92%}
   #hud .keys.hide{opacity:0}
@@ -48,9 +63,13 @@
   #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
   @media (max-width:700px){
-    #hud .brand{font-size:18px;top:14px}
-    #quest{top:46px;font-size:13px;padding:8px 14px}
-    #mixPill{font-size:11px;padding:9px 15px;max-width:46vw}
+    #hud .brand{font-size:20px;top:12px}
+    #quest{top:44px;font-size:14px;padding:8px 15px}
+    #mixPill{font-size:12px;padding:9px 15px;max-width:38vw}
+    #scoreCard{top:10px;min-width:0;padding:6px 16px 7px}
+    #scoreCard .scLabel{font-size:9px;letter-spacing:.18em}
+    #scoreCard .scTime{font-size:24px}
+    #scoreCard .scSub{font-size:9px}
   }
 
   /* ---- jog wheel ---- */
@@ -125,8 +144,8 @@
   }
 
   /* ---- HUD buttons (map + settings) ---- */
-  #hudBtns{position:absolute;top:76px;right:16px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
-  .hudBtn{width:60px;height:60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);cursor:pointer;
+  #hudBtns{position:absolute;top:84px;right:18px;display:flex;flex-direction:column;gap:12px;pointer-events:auto}
+  .hudBtn{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,255,255,.5);cursor:pointer;
     font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;
     background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     box-shadow:0 6px 18px rgba(70,15,110,.4);transition:transform .12s}
@@ -134,7 +153,7 @@
   @media (max-width:700px){ #hudBtns{top:84px;right:12px} .hudBtn{width:48px;height:48px;font-size:22px} }
 
   /* ---- minimap ---- */
-  #minimapWrap{position:absolute;top:106px;left:18px;width:124px;height:124px;pointer-events:none}
+  #minimapWrap{position:absolute;top:132px;left:20px;width:132px;height:132px;pointer-events:none}
   #minimap{width:100%;height:100%;border-radius:50%;
     border:2px solid rgba(255,255,255,.55);background:rgba(60,15,95,.35);
     box-shadow:0 6px 20px rgba(70,15,110,.4), inset 0 0 18px rgba(255,255,255,.1);
@@ -206,6 +225,11 @@
 <div id="hud">
   <div class="brand">ICE CREAM ADVENTURE</div>
   <div id="quest">🍦 Flavors mixed: <span id="questN">0</span>/6</div>
+  <div id="scoreCard">
+    <div class="scLabel">Mix Speed</div>
+    <div class="scTime" id="scTime">0:00.0</div>
+    <div class="scSub" id="scSub">mix all 6 to set a time!</div>
+  </div>
   <div id="minimapWrap">
     <canvas id="minimap" width="160" height="160"></canvas>
     <div id="minimapLabel">Map</div>
@@ -340,6 +364,8 @@ LEVELS.forEach((_,i)=>{
     save.unlocked=Math.min(LEVELS.length,Math.max(save.unlocked,i+2));
 });
 save.settings=Object.assign({music:78,sfx:90,motion:true,quality:'auto'},save.settings||{});
+save.best=save.best||{};       // level -> fastest full-mix time (seconds)
+save.score=save.score||0;      // running total, future: unlocks music items
 function persist(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(save)); }catch(e){} }
 
 /* ---------------- renderer ---------------- */
@@ -1716,7 +1742,7 @@ function applyLevel(i){
   player.position.set(0,0,8);
   playerVel.set(0,0,0);
   if(started){ stopGroove(); startGroove(); }
-  updateHUD(); persist();
+  updateHUD(); refreshScoreCard(); persist();
 }
 
 /* ---- overlays ---- */
@@ -1849,10 +1875,52 @@ function drawMinimap(){
   mmCtx.restore();
 }
 
+/* ===== mix-speed scoring: time how fast you build the full 6-flavor mix.
+   Live timer shows in the middle-top; finishing sets a best time + points.
+   (Future: spend save.score to unlock new music items — see ROADMAP.) ===== */
+const scoreCardEl=document.getElementById('scoreCard');
+const scTimeEl=document.getElementById('scTime');
+const scSubEl=document.getElementById('scSub');
+const mixRun={active:false,done:false,start:0,elapsed:0};
+function fmtTime(s){ const m=Math.floor(s/60); return m+':'+(s-m*60).toFixed(1).padStart(4,'0'); }
+function startMixRun(){
+  if(mixRun.active||mixRun.done||mixedCount()>0)return;
+  mixRun.active=true; mixRun.done=false; mixRun.start=performance.now(); mixRun.elapsed=0;
+  scoreCardEl.classList.add('run'); scoreCardEl.classList.remove('win');
+}
+function finishMixRun(){
+  if(!mixRun.active)return;
+  mixRun.active=false; mixRun.done=true;
+  const t=mixRun.elapsed, prev=save.best[curLevel], isBest=(prev==null||t<prev);
+  if(isBest)save.best[curLevel]=t;
+  const pts=1000+Math.max(0,Math.round((90-t)*30));
+  save.score+=pts; persist();
+  scoreCardEl.classList.remove('run'); scoreCardEl.classList.add('win','pulse');
+  setTimeout(()=>scoreCardEl.classList.remove('pulse'),600);
+  scTimeEl.textContent=fmtTime(t);
+  scSubEl.innerHTML=(isBest?'⭐ NEW BEST! ':'')+'+'+pts.toLocaleString()+' pts · ★ '+save.score.toLocaleString();
+}
+function refreshScoreCard(){
+  mixRun.active=false; mixRun.done=false;
+  scoreCardEl.classList.remove('run','win','pulse');
+  const done=(save.mixed[curLevel]||[]).length>=FLAVORS.length, best=save.best[curLevel];
+  if(done){ mixRun.done=true; scoreCardEl.classList.add('win');
+    scTimeEl.textContent=best!=null?fmtTime(best):'✓';
+    scSubEl.innerHTML='best · ★ '+save.score.toLocaleString(); }
+  else { scTimeEl.textContent='0:00.0';
+    scSubEl.innerHTML=best!=null?('best '+fmtTime(best)+' · ★ '+save.score.toLocaleString()):'mix all 6 to set a time!'; }
+}
+function tickMixRun(){
+  if(!mixRun.active)return;
+  mixRun.elapsed=(performance.now()-mixRun.start)/1000;
+  scTimeEl.textContent=fmtTime(mixRun.elapsed);
+}
+
 function collectFlavor(p){
   p.taken=true;
   flavorState[p.flavor.key]='carried';
   scene.remove(p.grp);
+  startMixRun();
   addOrbiter(p.flavor);
   collectSfx();
   confettiBurst(player.position,p.flavor.color,14);
@@ -1885,6 +1953,7 @@ function doDeposit(f){
   showToast(f.emoji+' '+f.name+' in the mix!<br><span style="font-size:.55em">'+f.desc+' unlocked</span>');
   updateHUD();
   if(mixedCount()===FLAVORS.length&&!megaMix){
+    finishMixRun();
     setTimeout(()=>{
       megaMix=true;
       showToast('🌈 MEGA MIX UNLOCKED! 🌈',4200);
@@ -2142,6 +2211,7 @@ function animate(){
   dj.group.position.y=punch*.3*wob;
 
   if(coveGroup.visible)updateCove(dt,time,punch,bp);
+  tickMixRun();
 
   /* emotes + confetti */
   for(const e of emotes){
