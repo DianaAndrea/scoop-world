@@ -317,6 +317,12 @@ const LEVELS=[
    roots:[55,61.7,49,65.4],
    chords:[[261.6,329.6,392],[293.7,370,440],[220,277.2,329.6],[246.9,311.1,370]],
    spots:[[26,18],[-19,-24],[-32,10],[14,-34],[36,-6],[-6,38]]},
+  {name:'The Cove',emoji:'🐚',desc:'tropical house in a palm lagoon with sea-critter pals',
+   bpm:128,sky:['#0E9BC8','#2FBADF','#7FE0E0','#FCF3D6'],fog:0x8fdfe0,
+   ground:'#EAD6A0',hue:[172,320],hemi:[0xbeeff0,0xe8cf96],sun:0xfff4d8,
+   roots:[65.4,49,55,43.7],
+   chords:[[261.6,329.6,392],[196,246.9,293.7],[220,261.6,329.6],[174.6,220,261.6]],
+   spots:[[20,20],[-22,16],[28,-18],[-30,-16],[6,-36],[-8,36]]},
 ];
 
 /* ================= SAVE / LOAD ================= */
@@ -937,6 +943,230 @@ const dj=makeFriend('bunnypup');
 dj.group.position.set(0,0,-8.2); dj.group.rotation.y=0; dj.group.scale.setScalar(1.5);
 dj.wander=false; dj.style=0;
 
+/* =====================================================================
+   THE COVE — ocean, palms, sea-creature friends & a beach ball.
+   All of it lives under coveGroup, hidden unless you're in the cove,
+   and animated by updateCove() only while visible (kept off the other
+   four worlds entirely).
+   ===================================================================== */
+const coveGroup=new THREE.Group(); coveGroup.visible=false; scene.add(coveGroup);
+const COVE_LEVEL=4;
+
+/* --- ocean: a rippling ring of water surrounding the island --- */
+const waterTex=canvasTex((g,w,h)=>{
+  g.fillStyle='#2fbfe0'; g.fillRect(0,0,w,h);
+  for(let i=0;i<70;i++){
+    g.strokeStyle=`rgba(255,255,255,${rand(.05,.16)})`; g.lineWidth=rand(2,7);
+    const y=rand(0,h); g.beginPath(); g.moveTo(0,y);
+    for(let x=0;x<=w;x+=18)g.lineTo(x,y+Math.sin(x*.05)*6); g.stroke();
+  }
+  for(let i=0;i<40;i++){ g.fillStyle=`rgba(190,255,255,${rand(.08,.22)})`;
+    g.beginPath(); g.arc(rand(0,w),rand(0,h),rand(6,20),0,7); g.fill(); }
+},512,512);
+waterTex.wrapS=waterTex.wrapT=THREE.RepeatWrapping; waterTex.repeat.set(7,7);
+const waterGeo=new THREE.RingGeometry(55,200,84,10);
+const water=new THREE.Mesh(waterGeo, new THREE.MeshStandardMaterial({
+  map:waterTex,color:0x63dcea,transparent:true,opacity:.94,roughness:.32,metalness:.12,side:THREE.DoubleSide}));
+water.rotation.x=-Math.PI/2; water.position.y=-.35; coveGroup.add(water);
+const waterBase=waterGeo.attributes.position.array.slice();
+const foam=new THREE.Mesh(new THREE.RingGeometry(60,64,90,1),
+  new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.55,side:THREE.DoubleSide}));
+foam.rotation.x=-Math.PI/2; foam.position.y=.02; coveGroup.add(foam);
+
+/* --- palm trees framing the sand --- */
+function makePalm(){
+  const g=new THREE.Group();
+  const seg=7, trunkC=pick([0xE8C088,0xE0B478]);
+  for(let i=0;i<seg;i++){
+    const t=i/seg, r0=.34-t*.16;
+    const c=new THREE.Mesh(new THREE.CylinderGeometry(r0*.86,r0,1.0,9), mat(trunkC,.02,{roughness:.75}));
+    c.position.set(Math.sin(t*1.15)*1.7, i*.95+.5, 0);
+    c.rotation.z=-Math.cos(t*1.15)*.36+.36;
+    g.add(c);
+  }
+  const tx=Math.sin(1.15)*1.7, ty=seg*.95+.4;
+  const crown=new THREE.Group(); crown.position.set(tx,ty,0); g.add(crown);
+  const frondC=pick([0x6FD98A,0x5FD0A0,0x83E27C]);
+  for(let f=0;f<8;f++){
+    const fr=new THREE.Mesh(new THREE.SphereGeometry(.9,8,6), mat(frondC,.03,{roughness:.6}));
+    fr.scale.set(2.0,.15,.55);
+    const a=f/8*Math.PI*2;
+    fr.position.set(Math.cos(a)*1.15,.1,Math.sin(a)*1.15);
+    fr.rotation.y=-a; fr.rotation.z=-.4;
+    crown.add(fr);
+  }
+  for(let k=0;k<3;k++){ const co=new THREE.Mesh(new THREE.SphereGeometry(.17,8,8), mat(0x6a4a2a,.02));
+    const a=k/3*Math.PI*2+.5; co.position.set(Math.cos(a)*.32,-.05,Math.sin(a)*.32); crown.add(co); }
+  shadowify(g); return {group:g,crown,phase:rand(0,7)};
+}
+const palms=[];
+[[42,26],[-46,14],[30,-40],[-38,-34],[50,-6],[-14,50],[8,-52]].forEach(([x,z])=>{
+  const p=makePalm(); p.group.position.set(x,0,z);
+  p.group.rotation.y=rand(0,Math.PI*2); p.group.scale.setScalar(rand(1.1,1.7));
+  coveGroup.add(p.group); palms.push(p);
+});
+
+/* --- shared beach-ball texture (used by the big ball + volleyball) --- */
+const ballTex=canvasTex((g,w,h)=>{
+  /* vertical bands map to classic beach-ball longitude segments */
+  const cols=['#ff5f7e','#ffd24f','#4fd0e8','#8affc8','#c58aff','#ffffff'];
+  const n=cols.length;
+  for(let i=0;i<n;i++){ g.fillStyle=cols[i]; g.fillRect(Math.floor(i*w/n),0,Math.ceil(w/n)+1,h); }
+},258,258);
+
+/* --- sea-creature friends: crab, seahorse, mermaid --- */
+function makeCrab(){
+  const g=new THREE.Group(); const c=0xFF6B4A;
+  const shell=new THREE.Mesh(new THREE.SphereGeometry(.6,18,14),mat(c,.05,{roughness:.4}));
+  shell.scale.set(1.5,.78,1.1); shell.position.y=.5; g.add(shell);
+  dotEye(-.18,.6,.62,g,true); dotEye(.18,.6,.62,g,true);
+  blushCheek(-.44,.42,.5,g); blushCheek(.44,.42,.5,g);
+  happyMouth(g,.38,.66,true);
+  [[-1],[1]].forEach(([sx])=>{
+    const stalk=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,.42,8),mat(c,.04));
+    stalk.position.set(sx*.24,.98,.18); g.add(stalk);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),mat(0xffffff,.1)); eye.position.set(sx*.24,1.2,.18); g.add(eye);
+    const pup=new THREE.Mesh(new THREE.SphereGeometry(.055,8,8),mat(0x2b1838)); pup.position.set(sx*.24,1.22,.28); g.add(pup);
+  });
+  const claws=[];
+  [[-1],[1]].forEach(([sx])=>{
+    const armG=new THREE.Group(); armG.position.set(sx*.9,.5,.32);
+    const upper=new THREE.Mesh(new THREE.SphereGeometry(.14,10,8),mat(c,.05)); upper.scale.set(1.5,.7,.7); upper.position.set(sx*.28,0,0); armG.add(upper);
+    const clawG=new THREE.Group(); clawG.position.set(sx*.6,0,0);
+    const base=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),mat(c,.05)); base.scale.set(1.1,1.35,.7); clawG.add(base);
+    const pinT=new THREE.Mesh(new THREE.ConeGeometry(.1,.36,8),mat(c,.05)); pinT.position.set(sx*.14,.22,0); pinT.rotation.z=-sx*.35; clawG.add(pinT);
+    const pinB=new THREE.Mesh(new THREE.ConeGeometry(.1,.36,8),mat(c,.05)); pinB.position.set(sx*.14,-.22,0); pinB.rotation.z=sx*.35+Math.PI; clawG.add(pinB);
+    armG.add(clawG); g.add(armG); claws.push({pinT,pinB,side:sx});
+  });
+  [[-1],[1]].forEach(([sx])=>{ for(let l=0;l<3;l++){
+    const leg=new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.5,6),mat(c,.04));
+    leg.position.set(sx*.62,.22,-.28+l*.28); leg.rotation.z=sx*.95; g.add(leg);
+  }});
+  shadowify(g); return {group:g,claws,phase:rand(0,7)};
+}
+function makeSeahorse(){
+  const g=new THREE.Group(); const body=new THREE.Group(); g.add(body);
+  const c=0xFFD24F,c2=0xFFB84A;
+  const segP=[[0,.5,.28,.34],[0,.9,.16,.3],[0,1.25,0,.26],[0,1.55,-.05,.22],[0,1.82,.06,.2]];
+  segP.forEach((p,i)=>{ const s=new THREE.Mesh(new THREE.SphereGeometry(p[3],14,12),mat(i%2?c2:c,.04)); s.position.set(p[0],p[1],p[2]); body.add(s); });
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.24,14,12),mat(c,.05)); head.position.set(0,2.02,.12); body.add(head);
+  const snout=new THREE.Mesh(new THREE.CylinderGeometry(.06,.095,.36,8),mat(c2,.04)); snout.rotation.x=Math.PI/2.1; snout.position.set(0,1.98,.44); body.add(snout);
+  dotEye(-.11,2.08,.26,body); dotEye(.11,2.08,.26,body);
+  blushCheek(-.17,1.96,.2,body); blushCheek(.17,1.96,.2,body);
+  for(let k=0;k<3;k++){ const sp=new THREE.Mesh(new THREE.ConeGeometry(.05,.17,6),mat(0xFF7FB0,.05)); sp.position.set(-.1+k*.1,2.26,0); body.add(sp); }
+  const fin=new THREE.Mesh(new THREE.ConeGeometry(.13,.7,3),mat(0x7FE0C8,.06)); fin.scale.set(.4,1,1); fin.rotation.x=Math.PI; fin.position.set(0,1.3,-.24); body.add(fin);
+  const t1=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),mat(c2,.04)); t1.position.set(0,.28,.42); body.add(t1);
+  const t2=new THREE.Mesh(new THREE.SphereGeometry(.12,10,8),mat(c,.04)); t2.position.set(0,.16,.6); body.add(t2);
+  shadowify(g); return {group:g,body,phase:rand(0,7)};
+}
+function makeMermaid(){
+  const g=new THREE.Group();
+  const skin=0xFFE0C4,tailC=0x8A7BFF,tailC2=0x6FD8E8,hairC=0xFF7FC0;
+  const rock=new THREE.Mesh(new THREE.SphereGeometry(.9,14,12),mat(0xC0B0D0,.01,{roughness:.95})); rock.scale.set(1.25,.7,1.1); rock.position.y=.18; g.add(rock);
+  const tail=new THREE.Group(); tail.position.set(0,.62,.15); g.add(tail);
+  [[0,0,0,.3],[0,-.12,.36,.27],[.05,-.16,.72,.23],[.1,-.06,1.02,.19]].forEach((s,i)=>{
+    const m=new THREE.Mesh(new THREE.SphereGeometry(s[3],14,12),mat(i%2?tailC:tailC2,.05)); m.position.set(s[0],s[1],s[2]); tail.add(m); });
+  [[-1],[1]].forEach(([sx])=>{ const fl=new THREE.Mesh(new THREE.ConeGeometry(.22,.52,3),mat(tailC2,.07)); fl.scale.set(.5,1,1);
+    fl.position.set(sx*.2,-.04,1.28); fl.rotation.set(Math.PI/2,0,sx*.5); tail.add(fl); });
+  const torso=new THREE.Mesh(new THREE.SphereGeometry(.3,16,14),mat(skin,.04)); torso.scale.set(1,1.2,.9); torso.position.set(0,1.06,.04); g.add(torso);
+  [[-1],[1]].forEach(([sx])=>{ const sh=new THREE.Mesh(new THREE.SphereGeometry(.15,12,10),mat(0xFF9AD0,.06)); sh.scale.set(1,.8,.6); sh.position.set(sx*.16,1.02,.24); g.add(sh); });
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.34,18,14),mat(skin,.04)); head.position.set(0,1.62,.0); g.add(head);
+  dotEye(-.12,1.66,.3,g,true); dotEye(.12,1.66,.3,g,true);
+  blushCheek(-.21,1.53,.26,g); blushCheek(.21,1.53,.26,g);
+  happyMouth(g,1.49,.32,false);
+  for(let k=0;k<6;k++){ const hs=new THREE.Mesh(new THREE.SphereGeometry(.2,12,10),mat(hairC,.05));
+    const a=k/6*Math.PI*2; hs.position.set(Math.cos(a)*.28,1.7+Math.sin(a)*.1,-.16+Math.sin(a)*.04); g.add(hs); }
+  const bun=new THREE.Mesh(new THREE.SphereGeometry(.16,12,10),mat(0xFFFFFF,.05)); bun.position.set(0,1.92,-.06); g.add(bun);
+  const armG=new THREE.Group(); armG.position.set(.3,1.08,.04);
+  const arm=new THREE.Mesh(new THREE.SphereGeometry(.1,10,8),mat(skin,.04)); arm.scale.set(.8,1.5,.8); arm.position.y=.16; armG.add(arm);
+  g.add(armG);
+  shadowify(g); return {group:g,tail,arm:armG,phase:rand(0,7)};
+}
+const crab=makeCrab(); crab.group.position.set(24,0,34); crab.group.rotation.y=-2.3; crab.group.scale.setScalar(1.15); coveGroup.add(crab.group);
+crab.baseX=24; crab.baseZ=34;
+const seahorse=makeSeahorse(); seahorse.group.position.set(-30,0,40); seahorse.group.rotation.y=2.4; seahorse.group.scale.setScalar(1.1); coveGroup.add(seahorse.group);
+const mermaid=makeMermaid(); mermaid.group.position.set(38,0,30); mermaid.group.rotation.y=-2.5; mermaid.group.scale.setScalar(1.2); coveGroup.add(mermaid.group);
+
+/* --- a beach ball you can bump around --- */
+function makeBeachGoer(bodyC){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.SphereGeometry(.42,16,14),mat(bodyC,.05)); body.scale.set(1,1.05,.9); body.position.y=.48; g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.5,18,14),mat(bodyC,.05)); head.scale.set(1,.94,.96); head.position.y=1.15; g.add(head);
+  dotEye(-.17,1.2,.46,g); dotEye(.17,1.2,.46,g);
+  blushCheek(-.3,1.06,.4,g); blushCheek(.3,1.06,.4,g);
+  happyMouth(g,1.05,.48,true);
+  const arms=[];
+  [[-1],[1]].forEach(([sx])=>{ const piv=new THREE.Group(); piv.position.set(sx*.42,.66,0);
+    const arm=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),mat(bodyC,.05)); arm.scale.set(.8,1.4,.8); arm.position.y=-.14; piv.add(arm);
+    piv.rotation.z=sx*1.0; g.add(piv); arms.push({piv,side:sx}); });
+  shadowify(g); return {group:g,arms};
+}
+const beachBall=new THREE.Mesh(new THREE.SphereGeometry(.9,24,18), new THREE.MeshStandardMaterial({map:ballTex,roughness:.4}));
+beachBall.castShadow=true; coveGroup.add(beachBall);
+const ballS={pos:new THREE.Vector3(7,.9,7),vel:new THREE.Vector3(),R:.9};
+let ballKickCool=0;
+function resetBeachBall(){ ballS.pos.set(7,.9,7); ballS.vel.set(0,0,0); beachBall.position.copy(ballS.pos); }
+
+/* --- a friendly volleyball rally by the shore --- */
+const volley={};
+{ const vg=new THREE.Group(); vg.position.set(-20,0,16); vg.rotation.y=.5; coveGroup.add(vg);
+  [[-2.7],[2.7]].forEach(([px])=>{ const post=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,3.2,8),mat(0xffffff,.05)); post.position.set(px,1.6,0); post.castShadow=true; vg.add(post); });
+  const net=new THREE.Mesh(new THREE.PlaneGeometry(5.4,1,12,3), new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.45,wireframe:true,side:THREE.DoubleSide})); net.position.set(0,2.2,0); vg.add(net);
+  const p1=makeBeachGoer(0x5FA8FF); p1.group.position.set(-5,0,0); p1.group.rotation.y=Math.PI/2; vg.add(p1.group);
+  const p2=makeBeachGoer(0xFF8FB0); p2.group.position.set(5,0,0); p2.group.rotation.y=-Math.PI/2; vg.add(p2.group);
+  const ball=new THREE.Mesh(new THREE.SphereGeometry(.32,16,12), new THREE.MeshStandardMaterial({map:ballTex,roughness:.4})); ball.castShadow=true; vg.add(ball);
+  Object.assign(volley,{vg,p1,p2,ball,t:0});
+}
+
+/* --- drive everything (called from animate only while in the cove) --- */
+function updateCove(dt,time,punch,bp){
+  /* ocean swell + shimmer */
+  const wp=waterGeo.attributes.position;
+  for(let i=0;i<wp.count;i++){
+    const x=waterBase[i*3], y=waterBase[i*3+1];
+    wp.setZ(i, Math.sin(x*.07+time*1.3)*.55 + Math.cos(y*.06-time*1.0)*.4);
+  }
+  wp.needsUpdate=true;
+  waterTex.offset.x+=dt*.02; waterTex.offset.y+=dt*.012;
+  foam.material.opacity=.5+Math.sin(time*1.5)*.12;
+  /* palms sway */
+  palms.forEach(p=>{ p.crown.rotation.z=Math.sin(time*.9+p.phase)*.08; p.crown.rotation.x=Math.cos(time*.7+p.phase)*.05; });
+  /* crab: scuttle side to side + snap claws on the beat */
+  { const c=crab, sway=Math.sin(time*1.4+c.phase);
+    c.group.position.x=c.baseX+sway*1.4; c.group.position.z=c.baseZ+Math.cos(time*1.4+c.phase)*.5;
+    c.group.position.y=Math.abs(Math.sin(time*2.8))*.12; c.group.rotation.z=sway*.12;
+    const snap=Math.max(0,Math.sin((bp!=null?bp:time)*Math.PI))*.5;
+    c.claws.forEach(cl=>{ cl.pinT.rotation.z=-cl.side*.35-snap; cl.pinB.rotation.z=cl.side*.35+Math.PI+snap; }); }
+  /* seahorse: gentle bob + sway */
+  { const s=seahorse; s.group.position.y=Math.sin(time*1.6+s.phase)*.22+.22; s.body.rotation.z=Math.sin(time*1.1+s.phase)*.12; }
+  /* mermaid: tail flick, wave, bob */
+  { const m=mermaid; m.tail.rotation.x=Math.sin(time*1.5+m.phase)*.18; m.group.position.y=Math.sin(time*1.2+m.phase)*.08;
+    m.arm.rotation.z=-1.0-Math.sin(time*4)*.5; }
+  /* beach ball physics + player knock */
+  { const s=ballS; ballKickCool-=dt;
+    s.vel.x*=.99; s.vel.z*=.99; s.vel.y-=15*dt;
+    s.pos.addScaledVector(s.vel,dt);
+    if(s.pos.y<s.R){ s.pos.y=s.R; s.vel.y=Math.abs(s.vel.y)*.55; s.vel.x*=.86; s.vel.z*=.86; }
+    const br=Math.hypot(s.pos.x,s.pos.z);
+    if(br>44){ const nx=s.pos.x/br,nz=s.pos.z/br; s.pos.x=nx*44; s.pos.z=nz*44;
+      const d=s.vel.x*nx+s.vel.z*nz; s.vel.x-=2*d*nx; s.vel.z-=2*d*nz; s.vel.x*=.7; s.vel.z*=.7; }
+    const dxp=s.pos.x-player.position.x, dzp=s.pos.z-player.position.z, dp=Math.hypot(dxp,dzp);
+    if(dp<s.R+.95){ const nx=dxp/(dp||1), nz=dzp/(dp||1);
+      const kick=Math.max(6,Math.hypot(playerVel.x,playerVel.z)*1.7);
+      s.vel.x=nx*kick; s.vel.z=nz*kick; s.vel.y=Math.max(s.vel.y,4.5);
+      s.pos.x=player.position.x+nx*(s.R+.97); s.pos.z=player.position.z+nz*(s.R+.97);
+      if(started&&ballKickCool<=0){ popSfx(); ballKickCool=.22; } }
+    beachBall.position.copy(s.pos);
+    beachBall.rotation.x+=s.vel.z*dt*1.1; beachBall.rotation.z-=s.vel.x*dt*1.1; }
+  /* volleyball rally */
+  { volley.t+=dt; const p=volley.t*1.7, u=(Math.sin(p)+1)/2;
+    volley.ball.position.set((u*2-1)*4.4,.9+Math.sin(u*Math.PI)*2.6,0);
+    volley.ball.rotation.x+=dt*6;
+    const bump=(pl,active)=>{ pl.group.position.y=active?Math.abs(Math.sin(time*10))*.3:0;
+      pl.arms.forEach(a=>a.piv.rotation.z=a.side*(active?.3:1.0)); };
+    bump(volley.p1,u<.2); bump(volley.p2,u>.8); }
+}
+
 /* ---------------- player ---------------- */
 const player=new THREE.Group();
 const orbiters=[];  /* collected flavors orbit the cone */
@@ -1458,6 +1688,9 @@ function applyLevel(i){
   groundMat.map=makeGroundTex(L);
   hemiL.color.set(L.hemi[0]); hemiL.groundColor.set(L.hemi[1]);
   sunL.color.set(L.sun);
+  /* show ocean/palms/sea-critters only in the cove */
+  coveGroup.visible=(i===COVE_LEVEL);
+  if(coveGroup.visible)resetBeachBall();
   /* re-tune the groove */
   BPM=L.bpm; BEAT=60/BPM; ROOTS=L.roots; CHORDS=L.chords;
   /* reset the quest, then restore saved progress for this world */
@@ -1907,6 +2140,8 @@ function animate(){
     }
   }
   dj.group.position.y=punch*.3*wob;
+
+  if(coveGroup.visible)updateCove(dt,time,punch,bp);
 
   /* emotes + confetti */
   for(const e of emotes){
