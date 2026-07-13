@@ -303,7 +303,8 @@ const LEVELS=[
    chords:[[196,246.9,293.7],[196,261.6,329.6],[174.6,220,261.6],[164.8,207.7,246.9]],
    spots:[[-17,20],[24,10],[-28,-18],[16,-28],[8,38],[-36,4]]},
   {name:'Neon Nightclub',emoji:'🪩',desc:'fast beats under a glowing midnight sky',
-   bpm:140,sky:['#12083f','#3f1370','#8a1fae','#e03fae'],fog:0x4a1f8e,
+   audio:'sugar-rush',
+   bpm:142,sky:['#12083f','#3f1370','#8a1fae','#e03fae'],fog:0x4a1f8e,
    ground:'#3f2a8e',hue:[230,330],hemi:[0x8a5fff,0x2a1060],sun:0xd0b8ff,
    roots:[41.2,41.2,49,36.7],
    chords:[[164.8,196,246.9],[164.8,207.7,246.9],[146.8,185,220],[196,233,293.7]],
@@ -1013,6 +1014,12 @@ let BPM=124, BEAT=60/BPM;
    through its own gain node; the analyser sits inline (pass-through) and
    feeds the visualizer, then continues on to the shared bar bus. */
 const flavorGain={}, flavorAnalyser={};
+function applyFlavorGain(key){
+  const g=flavorGain[key]; if(!g)return;
+  const target=mixOn[key]?(flavorVol[key]??.8)*1.35:0;
+  if(audioCtx)g.gain.setTargetAtTime(target,audioCtx.currentTime,.05);
+  else g.gain.value=target;
+}
 
 function ctx(){
   if(!audioCtx){
@@ -1024,8 +1031,28 @@ function ctx(){
       g.connect(an);
       flavorGain[f.key]=g; flavorAnalyser[f.key]=an;
     });
+    Object.keys(REAL_SONGS).forEach(slug=>loadRealAudio(slug).catch(()=>{}));
   }
   audioCtx.resume(); return audioCtx;
+}
+
+/* ---- real recorded stems (WAV), loaded per-song and looped in the DJ deck
+   with the same per-flavor gain/analyser routing as the synth layers ---- */
+const AUDIO_STEM_ORDER=['drums','strawberry','mint','blueberry','mango','grape','lemon'];
+const REAL_SONGS={ 'sugar-rush':{bpm:142,loopSeconds:27.042} };
+const audioBufferCache={}, audioLoadPromises={};
+function loadRealAudio(slug){
+  if(audioBufferCache[slug])return Promise.resolve(audioBufferCache[slug]);
+  if(audioLoadPromises[slug])return audioLoadPromises[slug];
+  const a=ctx();
+  const p=Promise.all(AUDIO_STEM_ORDER.map((name,idx)=>
+    fetch(`audio/${slug}/${String(idx).padStart(2,'0')}-${name}.wav`)
+      .then(r=>r.arrayBuffer()).then(buf=>a.decodeAudioData(buf))
+  )).then(buffers=>{
+    const out={}; AUDIO_STEM_ORDER.forEach((name,i)=>out[name]=buffers[i]);
+    return audioBufferCache[slug]=out;
+  });
+  return audioLoadPromises[slug]=p;
 }
 
 function kick(t,bus,pitch=150){ const a=ctx(),o=a.createOscillator(),g=a.createGain();
@@ -1103,17 +1130,28 @@ const LAYERS={
   }
 };
 
-let barTimers=[],barRunning=false;
+let barTimers=[],barRunning=false,realSources=[];
 function stopGroove(){
   if(!barRunning)return;
   barRunning=false;
   barTimers.forEach(clearTimeout); barTimers=[];
+  realSources.forEach(s=>{ try{s.stop();}catch(e){} }); realSources=[];
   if(musicBus&&audioCtx){
     const mb=musicBus;
     mb.gain.setTargetAtTime(.0001,audioCtx.currentTime,.12);
     setTimeout(()=>{ try{mb.disconnect();}catch(e){} },900);
     musicBus=null;
   }
+}
+function startRealGroove(a,bus,buffers){
+  AUDIO_STEM_ORDER.forEach(name=>{
+    const src=a.createBufferSource();
+    src.buffer=buffers[name];
+    src.loop=true; src.loopStart=0; src.loopEnd=buffers[name].duration;
+    src.connect(name==='drums'?bus:flavorGain[name]);
+    src.start(musicStart);
+    realSources.push(src);
+  });
 }
 function startGroove(){
   const a=ctx();
@@ -1129,8 +1167,14 @@ function startGroove(){
   FLAVORS.forEach(f=>{
     try{flavorAnalyser[f.key].disconnect();}catch(e){}
     flavorAnalyser[f.key].connect(bus);
-    flavorGain[f.key].gain.value=(flavorVol[f.key]??.8)*1.35;
+    applyFlavorGain(f.key);
   });
+  const realSlug=LEVELS[curLevel].audio;
+  if(realSlug&&audioBufferCache[realSlug]){
+    startRealGroove(a,bus,audioBufferCache[realSlug]);
+    return;
+  }
+  if(realSlug)loadRealAudio(realSlug).catch(()=>{});
   let n=0;
   function schedule(){
     if(!barRunning)return;
@@ -1257,6 +1301,7 @@ function toggleFlavor(key){
   mixOn[key]=!mixOn[key];
   flavBtns[key].classList.toggle('on',mixOn[key]);
   flavRows[key].classList.toggle('muted',!mixOn[key]);
+  applyFlavorGain(key);
   popSfx(); updateHUD();
 }
 
@@ -1290,7 +1335,7 @@ FLAVORS.forEach((f,idx)=>{
   function setVol(v){
     v=Math.max(0,Math.min(1,v));
     flavorVol[f.key]=v;
-    if(flavorGain[f.key])flavorGain[f.key].gain.value=v*1.35;
+    applyFlavorGain(f.key);
     fill.style.height=(v*96)+'%';
     thumb.style.bottom='calc('+(v*88)+'% )';
   }
@@ -1573,6 +1618,7 @@ function tryDeposit(){
 function doDeposit(f){
   flavorState[f.key]='mixed';
   mixOn[f.key]=true;
+  applyFlavorGain(f.key);
   save.mixed[curLevel]=save.mixed[curLevel]||[];
   if(!save.mixed[curLevel].includes(f.key))save.mixed[curLevel].push(f.key);
   persist();

@@ -1,0 +1,140 @@
+{
+  "bars": 16,
+  "songs": [
+    {
+      "title": "Bubblegum Bounce",
+      "slug": "bubblegum-bounce",
+      "bpm": 126,
+      "bars": 16,
+      "loopSeconds": 30.476,
+      "stems": [
+        {
+          "flavor": "drums",
+          "role": "base beat (always on)",
+          "file": "bubblegum-bounce/00-drums.wav"
+        },
+        {
+          "flavor": "strawberry",
+          "role": "melody",
+          "file": "bubblegum-bounce/01-strawberry.wav"
+        },
+        {
+          "flavor": "mint",
+          "role": "sparkles",
+          "file": "bubblegum-bounce/02-mint.wav"
+        },
+        {
+          "flavor": "blueberry",
+          "role": "bass",
+          "file": "bubblegum-bounce/03-blueberry.wav"
+        },
+        {
+          "flavor": "mango",
+          "role": "drums / percussion",
+          "file": "bubblegum-bounce/04-mango.wav"
+        },
+        {
+          "flavor": "grape",
+          "role": "chords",
+          "file": "bubblegum-bounce/05-grape.wav"
+        },
+        {
+          "flavor": "lemon",
+          "role": "acid zing",
+          "file": "bubblegum-bounce/06-lemon.wav"
+        }
+      ],
+      "fullMix": "bubblegum-bounce/_full-mix.wav"
+    },
+    {
+      "title": "Cotton Cloud",
+      "slug": "cotton-cloud",
+      "bpm": 96,
+      "bars": 16,
+      "loopSeconds": 40.0,
+      "stems": [
+        {
+          "flavor": "drums",
+          "role": "base beat (always on)",
+          "file": "cotton-cloud/00-drums.wav"
+        },
+        {
+          "flavor": "strawberry",
+          "role": "melody",
+          "file": "cotton-cloud/01-strawberry.wav"
+        },
+        {
+          "flavor": "mint",
+          "role": "sparkles",
+          "file": "cotton-cloud/02-mint.wav"
+        },
+        {
+          "flavor": "blueberry",
+          "role": "bass",
+          "file": "cotton-cloud/03-blueberry.wav"
+        },
+        {
+          "flavor": "mango",
+          "role": "drums / percussion",
+          "file": "cotton-cloud/04-mango.wav"
+        },
+        {
+          "flavor": "grape",
+          "role": "chords",
+          "file": "cotton-cloud/05-grape.wav"
+        },
+        {
+          "flavor": "lemon",
+          "role": "acid zing",
+          "file": "cotton-cloud/06-lemon.wav"
+        }
+      ],
+      "fullMix": "cotton-cloud/_full-mix.wav"
+    },
+    {
+      "title": "Sugar Rush",
+      "slug": "sugar-rush",
+      "bpm": 142,
+      "bars": 16,
+      "loopSeconds": 27.042,
+      "stems": [
+        {
+          "flavor": "drums",
+          "role": "base beat (always on)",
+          "file": "sugar-rush/00-drums.wav"
+        },
+        {
+          "flavor": "strawberry",
+          "role": "melody",
+          "file": "sugar-rush/01-strawberry.wav"
+        },
+        {
+          "flavor": "mint",
+          "role": "sparkles",
+          "file": "sugar-rush/02-mint.wav"
+        },
+        {
+          "flavor": "blueberry",
+          "role": "bass",
+          "file": "sugar-rush/03-blueberry.wav"
+        },
+        {
+          "flavor": "mango",
+          "role": "drums / percussion",
+          "file": "sugar-rush/04-mango.wav"
+        },
+        {
+          "flavor": "grape",
+          "role": "chords",
+          "file": "sugar-rush/05-grape.wav"
+        },
+        {
+          "flavor": "lemon",
+          "role": "acid zing",
+          "file": "sugar-rush/06-lemon.wav"
+        }
+      ],
+      "fullMix": "sugar-rush/_full-mix.wav"
+    }
+  ]
+}
