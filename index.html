@@ -29,16 +29,16 @@
 
   #hud{position:fixed;inset:0;pointer-events:none;z-index:20;display:none}
   #hud.show{display:block}
-  #hud .brand{position:absolute;top:16px;left:18px;font-family:'Titan One',cursive;font-size:17px;color:#fff;
-    text-shadow:0 2px 0 #d035ae, 0 4px 14px rgba(90,20,140,.7)}
-  #quest{position:absolute;top:44px;left:18px;font-size:12px;font-weight:700;letter-spacing:.06em;
-    padding:7px 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);
+  #hud .brand{position:absolute;top:16px;left:18px;font-family:'Titan One',cursive;font-size:26px;color:#fff;
+    text-shadow:0 3px 0 #d035ae, 0 6px 18px rgba(90,20,140,.7)}
+  #quest{position:absolute;top:58px;left:18px;font-size:16px;font-weight:700;letter-spacing:.06em;
+    padding:10px 18px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);
     backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6)}
-  #mixPill{position:absolute;top:15px;right:16px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-    padding:9px 16px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);
-    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:60vw;
+  #mixPill{position:absolute;top:16px;right:16px;font-size:14px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    padding:12px 22px;border-radius:999px;background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.45);
+    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:56vw;
     overflow:hidden;text-overflow:ellipsis}
-  #hud .keys{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:11px;letter-spacing:.2em;
+  #hud .keys{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.18em;
     text-transform:uppercase;opacity:.9;transition:opacity 1s;text-shadow:0 1px 8px rgba(90,20,140,.8);text-align:center;width:92%}
   #hud .keys.hide{opacity:0}
   #toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.9);opacity:0;
@@ -48,65 +48,93 @@
   #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
   @media (max-width:700px){
-    #hud .brand{font-size:14px;top:14px}
-    #quest{top:38px;font-size:11px}
-    #mixPill{font-size:10px;padding:7px 12px;max-width:46vw}
+    #hud .brand{font-size:18px;top:14px}
+    #quest{top:46px;font-size:13px;padding:8px 14px}
+    #mixPill{font-size:11px;padding:9px 15px;max-width:46vw}
   }
 
   /* ---- jog wheel ---- */
   #stickWrap{position:fixed;left:22px;bottom:26px;z-index:16;display:none;flex-direction:column;align-items:center;gap:8px;
     pointer-events:auto;touch-action:none}
   #stickWrap.show{display:flex}
-  #stick{position:relative;width:118px;height:118px;border-radius:50%;
+  #stick{position:relative;width:154px;height:154px;border-radius:50%;
     border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.16);
     backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     box-shadow:0 6px 24px rgba(70,15,110,.4), inset 0 0 24px rgba(255,255,255,.14)}
   #stick.idle{animation:nudge 2.2s ease-in-out infinite}
   @keyframes nudge{0%,100%{box-shadow:0 6px 24px rgba(70,15,110,.4), 0 0 0 0 rgba(255,255,255,.55)}
     50%{box-shadow:0 6px 24px rgba(70,15,110,.4), 0 0 0 12px rgba(255,255,255,0)}}
-  #stick .arrow{position:absolute;font-size:13px;color:rgba(255,255,255,.85);left:50%;top:50%;font-weight:700}
-  #stick .aU{transform:translate(-50%,-52px)} #stick .aD{transform:translate(-50%,38px)}
-  #stick .aL{transform:translate(-52px,-50%)} #stick .aR{transform:translate(38px,-50%)}
-  #knob{position:absolute;left:50%;top:50%;width:52px;height:52px;border-radius:50%;
+  #stick .arrow{position:absolute;font-size:15px;color:rgba(255,255,255,.85);left:50%;top:50%;font-weight:700}
+  #stick .aU{transform:translate(-50%,-68px)} #stick .aD{transform:translate(-50%,50px)}
+  #stick .aL{transform:translate(-68px,-50%)} #stick .aR{transform:translate(50px,-50%)}
+  #knob{position:absolute;left:50%;top:50%;width:68px;height:68px;border-radius:50%;
     background:radial-gradient(circle at 35% 30%, #ffc0e4, #ff4fae);transform:translate(-50%,-50%);
     box-shadow:0 4px 14px rgba(255,79,174,.8), inset 0 -4px 8px rgba(190,30,120,.45)}
   #stickLabel{font-size:10px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;
     color:#fff;opacity:.95;text-shadow:0 1px 8px rgba(90,20,140,.9)}
 
-  /* ---- DJ mix panel: waveform mixer ---- */
-  #mixPanel{position:fixed;right:14px;bottom:24px;z-index:16;display:none;flex-direction:column;align-items:stretch;gap:8px;
-    pointer-events:auto;padding:14px 14px;border-radius:26px;width:216px;
-    background:rgba(60,15,95,.42);border:1px solid rgba(255,255,255,.4);
-    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-    box-shadow:0 10px 34px rgba(50,5,90,.45)}
+  /* ---- DJ mix panel: full DJ console ---- */
+  #mixPanel{position:fixed;right:16px;bottom:20px;z-index:16;display:none;flex-direction:column;align-items:stretch;gap:9px;
+    pointer-events:auto;padding:16px 16px 12px;border-radius:28px;width:min(360px,32vw);min-width:300px;
+    background:linear-gradient(165deg, rgba(44,10,80,.78), rgba(24,6,48,.85));
+    border:1.5px solid rgba(255,255,255,.35);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 16px 48px rgba(30,2,60,.6), inset 0 1px 0 rgba(255,255,255,.25)}
   #mixPanel.show{display:flex}
-  #mixPanel .mixTitle{font-family:'Titan One',cursive;font-size:12px;letter-spacing:.08em;
-    text-shadow:0 2px 0 #d035ae;text-align:center;margin-bottom:2px}
+  #mixHead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;
+    border-bottom:1px solid rgba(255,255,255,.18)}
+  #mixHead .mixBrand{font-family:'Titan One',cursive;font-size:16px;letter-spacing:.06em;
+    text-shadow:0 2px 0 #d035ae, 0 4px 12px rgba(255,63,174,.5)}
+  #beatLeds{display:flex;gap:6px}
+  #beatLeds i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.16);
+    border:1px solid rgba(255,255,255,.3);transition:background .05s, box-shadow .05s}
+  #beatLeds i.lit{background:#35E8A8;box-shadow:0 0 10px #35E8A8, 0 0 20px rgba(53,232,168,.6)}
+  #mixMeta{display:flex;align-items:center;justify-content:space-between;font-size:10.5px;font-weight:700;
+    letter-spacing:.14em;text-transform:uppercase;opacity:.85;margin-top:-3px}
+  #bpmRead{font-variant-numeric:tabular-nums;color:#FFE85C}
   .mixRow{display:flex;align-items:center;gap:9px;animation:rowIn .3s ease}
+  .mixRow.muted .waveWrap{opacity:.5}
   @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-  .flavToggle{width:38px;height:38px;flex:none;border-radius:50%;border:2.5px solid rgba(255,255,255,.5);cursor:pointer;
-    font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;
+  .keyBadge{flex:none;width:20px;height:20px;border-radius:6px;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.3);font-size:11px;font-weight:700;display:flex;
+    align-items:center;justify-content:center;opacity:.85}
+  .flavToggle{width:46px;height:46px;flex:none;border-radius:50%;border:3px solid rgba(255,255,255,.5);cursor:pointer;
+    font-size:22px;line-height:1;display:flex;align-items:center;justify-content:center;
     background:rgba(255,255,255,.14);transition:transform .12s, box-shadow .2s, background .2s;
     filter:grayscale(.85);padding:0}
-  .flavToggle.on{filter:none;background:var(--fc);box-shadow:0 0 14px var(--fc), inset 0 -3px 8px rgba(0,0,0,.18);
+  .flavToggle.on{filter:none;background:var(--fc);box-shadow:0 0 16px var(--fc), inset 0 -4px 9px rgba(0,0,0,.2);
     border-color:#fff;transform:scale(1.05)}
   .flavToggle:active{transform:scale(.9)}
-  .waveWrap{flex:1;height:34px;border-radius:11px;background:rgba(0,0,0,.28);
-    border:1px solid rgba(255,255,255,.22);overflow:hidden;position:relative}
+  .waveWrap{flex:1;height:52px;border-radius:12px;background:rgba(0,0,0,.4);
+    border:1px solid rgba(255,255,255,.22);overflow:hidden;position:relative;
+    box-shadow:inset 0 2px 8px rgba(0,0,0,.4)}
   .waveCanvas{width:100%;height:100%;display:block}
-  @media (max-width:700px){ #mixPanel{width:184px;right:10px;bottom:20px;padding:11px 11px} .flavToggle{width:34px;height:34px;font-size:16px} .waveWrap{height:28px} }
+  .fader{flex:none;width:18px;height:52px;border-radius:9px;background:rgba(0,0,0,.42);
+    border:1px solid rgba(255,255,255,.28);position:relative;cursor:ns-resize;touch-action:none;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.4)}
+  .faderFill{position:absolute;left:2px;right:2px;bottom:2px;border-radius:7px;
+    background:linear-gradient(to top, var(--fc), rgba(255,255,255,.75));opacity:.85;pointer-events:none}
+  .faderThumb{position:absolute;left:-3px;right:-3px;height:9px;border-radius:5px;background:#fff;
+    box-shadow:0 2px 6px rgba(0,0,0,.5), 0 0 8px var(--fc);pointer-events:none}
+  #mixHint{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.65;text-align:center;margin-top:2px}
+  @media (max-width:700px){
+    #mixPanel{width:min(280px,80vw);min-width:0;right:10px;bottom:18px;padding:12px 12px 9px}
+    .flavToggle{width:38px;height:38px;font-size:18px}
+    .waveWrap{height:40px} .fader{height:40px}
+    #mixHead .mixBrand{font-size:13px} .keyBadge{display:none} #mixHint{display:none}
+  }
 
   /* ---- HUD buttons (map + settings) ---- */
-  #hudBtns{position:absolute;top:56px;right:16px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
-  .hudBtn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.5);cursor:pointer;
-    font-size:20px;line-height:1;display:flex;align-items:center;justify-content:center;
+  #hudBtns{position:absolute;top:76px;right:16px;display:flex;flex-direction:column;gap:10px;pointer-events:auto}
+  .hudBtn{width:60px;height:60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.5);cursor:pointer;
+    font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;
     background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-    box-shadow:0 4px 14px rgba(70,15,110,.35);transition:transform .12s}
+    box-shadow:0 6px 18px rgba(70,15,110,.4);transition:transform .12s}
   .hudBtn:active{transform:scale(.9)}
-  @media (max-width:700px){ #hudBtns{top:74px;right:12px} .hudBtn{width:40px;height:40px;font-size:18px} }
+  @media (max-width:700px){ #hudBtns{top:84px;right:12px} .hudBtn{width:48px;height:48px;font-size:22px} }
 
   /* ---- minimap ---- */
-  #minimapWrap{position:absolute;top:80px;left:18px;width:118px;height:118px;pointer-events:none}
+  #minimapWrap{position:absolute;top:106px;left:18px;width:124px;height:124px;pointer-events:none}
   #minimap{width:100%;height:100%;border-radius:50%;
     border:2px solid rgba(255,255,255,.55);background:rgba(60,15,95,.35);
     box-shadow:0 6px 20px rgba(70,15,110,.4), inset 0 0 18px rgba(255,255,255,.1);
@@ -114,7 +142,7 @@
   #minimapLabel{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;
     font-weight:700;letter-spacing:.24em;text-transform:uppercase;opacity:.85;white-space:nowrap;
     text-shadow:0 1px 6px rgba(90,20,140,.8)}
-  @media (max-width:700px){ #minimapWrap{top:70px;left:14px;width:96px;height:96px} #minimapLabel{font-size:8px;bottom:-16px} }
+  @media (max-width:700px){ #minimapWrap{top:88px;left:14px;width:100px;height:100px} #minimapLabel{font-size:8px;bottom:-16px} }
 
   /* ---- overlays (world map + settings) ---- */
   .overlay{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -183,7 +211,7 @@
     <div id="minimapLabel">Map</div>
   </div>
   <div id="mixPill">warming up the decks…</div>
-  <div class="keys" id="keysHint">Use the wheel to roam · drag to look · find the glowing scoops! · 🗺️ M = world map</div>
+  <div class="keys" id="keysHint">wheel/WASD to roam · drag to look · 1–6 remix the deck · M = world map</div>
   <div id="toast"></div>
   <div id="hudBtns">
     <button class="hudBtn" id="mapBtn" aria-label="World map">🗺️</button>
@@ -201,8 +229,13 @@
 </div>
 
 <div id="mixPanel">
-  <div class="mixTitle">DJ MIX</div>
-  <div id="mixRows"><!-- flavor rows injected --></div>
+  <div id="mixHead">
+    <div class="mixBrand">🎧 DJ DECK</div>
+    <div id="beatLeds"><i></i><i></i><i></i><i></i></div>
+  </div>
+  <div id="mixMeta"><span id="trackName">—</span><span id="bpmRead">— BPM</span></div>
+  <div id="mixRows"><!-- flavor channel strips injected --></div>
+  <div id="mixHint">keys 1–6 mute · drag faders for volume</div>
 </div>
 
 <div class="overlay" id="mapOverlay">
@@ -1096,6 +1129,7 @@ function startGroove(){
   FLAVORS.forEach(f=>{
     try{flavorAnalyser[f.key].disconnect();}catch(e){}
     flavorAnalyser[f.key].connect(bus);
+    flavorGain[f.key].gain.value=(flavorVol[f.key]??.8)*1.35;
   });
   let n=0;
   function schedule(){
@@ -1212,57 +1246,138 @@ function updateHUD(){
   }
 }
 
-/* DJ mixer rows: toggle button + live waveform canvas per flavor */
+/* DJ console: per-flavor channel strip = key badge + fruit mute + live
+   waveform display + volume fader (drives that flavor's gain node) */
 const mixRowsEl=document.getElementById('mixRows');
-const flavBtns={}, flavRows={}, waveCtxs={}, waveBufs={};
-FLAVORS.forEach(f=>{
+const flavBtns={}, flavRows={}, waveCtxs={}, waveBufs={}, flavorVol={};
+const WAVE_W=220, WAVE_H=52;
+
+function toggleFlavor(key){
+  if(flavorState[key]!=='mixed')return;
+  mixOn[key]=!mixOn[key];
+  flavBtns[key].classList.toggle('on',mixOn[key]);
+  flavRows[key].classList.toggle('muted',!mixOn[key]);
+  popSfx(); updateHUD();
+}
+
+FLAVORS.forEach((f,idx)=>{
   const row=document.createElement('div');
   row.className='mixRow'; row.style.display='none';
+  row.style.setProperty('--fc',f.css);
+
+  const kb=document.createElement('div');
+  kb.className='keyBadge'; kb.textContent=String(idx+1);
 
   const b=document.createElement('button');
   b.className='flavToggle'; b.style.setProperty('--fc',f.css);
   b.textContent=f.emoji;
-  b.title=f.name+' — '+f.desc;
-  b.addEventListener('pointerup',e=>{
-    e.stopPropagation();
-    mixOn[f.key]=!mixOn[f.key];
-    b.classList.toggle('on',mixOn[f.key]);
-    popSfx(); updateHUD();
-  });
+  b.title=f.name+' — '+f.desc+' (key '+(idx+1)+')';
+  b.addEventListener('pointerup',e=>{ e.stopPropagation(); toggleFlavor(f.key); });
 
   const waveWrap=document.createElement('div');
   waveWrap.className='waveWrap';
   const canvas=document.createElement('canvas');
-  canvas.className='waveCanvas'; canvas.width=150; canvas.height=34;
+  canvas.className='waveCanvas'; canvas.width=WAVE_W; canvas.height=WAVE_H;
   waveWrap.appendChild(canvas);
 
-  row.appendChild(b); row.appendChild(waveWrap);
+  /* volume fader */
+  flavorVol[f.key]=.8;
+  const fader=document.createElement('div');
+  fader.className='fader'; fader.style.setProperty('--fc',f.css);
+  const fill=document.createElement('div'); fill.className='faderFill';
+  const thumb=document.createElement('div'); thumb.className='faderThumb';
+  fader.appendChild(fill); fader.appendChild(thumb);
+  function setVol(v){
+    v=Math.max(0,Math.min(1,v));
+    flavorVol[f.key]=v;
+    if(flavorGain[f.key])flavorGain[f.key].gain.value=v*1.35;
+    fill.style.height=(v*96)+'%';
+    thumb.style.bottom='calc('+(v*88)+'% )';
+  }
+  setVol(.8);
+  const volFromEvent=e=>{
+    const r=fader.getBoundingClientRect();
+    setVol(1-(e.clientY-r.top)/r.height);
+  };
+  fader.addEventListener('pointerdown',e=>{
+    e.stopPropagation(); e.preventDefault();
+    fader.setPointerCapture(e.pointerId);
+    volFromEvent(e);
+  });
+  fader.addEventListener('pointermove',e=>{
+    if(fader.hasPointerCapture&&fader.hasPointerCapture(e.pointerId))volFromEvent(e);
+  });
+
+  row.appendChild(kb); row.appendChild(b); row.appendChild(waveWrap); row.appendChild(fader);
   mixRowsEl.appendChild(row);
 
   flavBtns[f.key]=b; flavRows[f.key]=row;
   waveCtxs[f.key]=canvas.getContext('2d');
 });
 
+/* number keys 1–6 punch layers in and out, DJ style */
+addEventListener('keydown',e=>{
+  if(!started||anyOverlayOpen())return;
+  const idx='123456'.indexOf(e.key);
+  if(idx>=0)toggleFlavor(FLAVORS[idx].key);
+});
+
+const beatLedEls=[...document.querySelectorAll('#beatLeds i')];
+const bpmReadEl=document.getElementById('bpmRead');
+const trackNameEl=document.getElementById('trackName');
+let lastBeat=-1,lastMetaLevel=-1;
+
 function drawWaveforms(){
+  /* beat LEDs + track meta */
+  const {bp}=beatInfo();
+  const beat=bp==null?-1:Math.floor(bp)%4;
+  if(beat!==lastBeat){
+    lastBeat=beat;
+    beatLedEls.forEach((el,i)=>el.classList.toggle('lit',i===beat));
+  }
+  if(lastMetaLevel!==curLevel){
+    lastMetaLevel=curLevel;
+    trackNameEl.textContent=LEVELS[curLevel].name;
+    bpmReadEl.textContent=BPM+' BPM';
+  }
+
+  /* bold mirrored bar waveforms — real analyser data per flavor channel */
   FLAVORS.forEach(f=>{
     if(flavRows[f.key].style.display==='none')return;
-    const c=waveCtxs[f.key], w=150, h=34;
+    const c=waveCtxs[f.key], w=WAVE_W, h=WAVE_H, mid=h/2;
     c.clearRect(0,0,w,h);
+    /* faint center line */
+    c.fillStyle='rgba(255,255,255,.14)';
+    c.fillRect(0,mid-.5,w,1);
     const an=flavorAnalyser[f.key];
     if(an&&mixOn[f.key]){
       let buf=waveBufs[f.key];
       if(!buf||buf.length!==an.fftSize){ buf=new Uint8Array(an.fftSize); waveBufs[f.key]=buf; }
       an.getByteTimeDomainData(buf);
-      c.strokeStyle=f.css; c.lineWidth=2; c.beginPath();
-      const step=w/(buf.length-1);
-      for(let i=0;i<buf.length;i++){
-        const y=(buf[i]/255)*h;
-        i===0?c.moveTo(0,y):c.lineTo(i*step,y);
+      const cols=36, bw=w/cols, slice=Math.floor(buf.length/cols);
+      c.fillStyle=f.css;
+      c.shadowColor=f.css; c.shadowBlur=8;
+      for(let i=0;i<cols;i++){
+        let d=0;
+        for(let j=i*slice;j<(i+1)*slice;j++){
+          const dev=Math.abs(buf[j]-128)/128;
+          if(dev>d)d=dev;
+        }
+        const bh=Math.max(3,Math.min(h-6,d*h*3.2));
+        c.beginPath();
+        c.roundRect(i*bw+1.5,mid-bh/2,bw-3,bh,2.5);
+        c.fill();
       }
-      c.stroke();
+      c.shadowBlur=0;
     } else {
-      c.strokeStyle='rgba(255,255,255,.28)'; c.lineWidth=2;
-      c.beginPath(); c.moveTo(0,h/2); c.lineTo(w,h/2); c.stroke();
+      /* muted: dim flat pills */
+      c.fillStyle='rgba(255,255,255,.22)';
+      const cols=36, bw=w/cols;
+      for(let i=0;i<cols;i++){
+        c.beginPath();
+        c.roundRect(i*bw+1.5,mid-1.5,bw-3,3,1.5);
+        c.fill();
+      }
     }
   });
 }
@@ -1289,7 +1404,9 @@ function applyLevel(i){
   orbiters.length=0;
   FLAVORS.forEach(f=>{
     flavorState[f.key]='hidden'; mixOn[f.key]=false;
-    flavRows[f.key].style.display='none'; flavBtns[f.key].classList.remove('on');
+    flavRows[f.key].style.display='none';
+    flavRows[f.key].classList.remove('muted');
+    flavBtns[f.key].classList.remove('on');
   });
   spawnPickups(L.spots);
   const mixedSaved=save.mixed[i]||[];
@@ -1460,6 +1577,7 @@ function doDeposit(f){
   if(!save.mixed[curLevel].includes(f.key))save.mixed[curLevel].push(f.key);
   persist();
   flavRows[f.key].style.display='flex';
+  flavRows[f.key].classList.remove('muted');
   flavBtns[f.key].classList.add('on');
   /* remove orbiter for this flavor */
   const oi=orbiters.findIndex(o=>o.flavor.key===f.key);
@@ -1514,7 +1632,7 @@ addEventListener('pointerdown',e=>{
     [joy.cx,joy.cy]=stickCenter();
     stickEl.classList.remove('idle');
     let dx=e.clientX-joy.cx,dy=e.clientY-joy.cy;
-    const len=Math.hypot(dx,dy),max=44;
+    const len=Math.hypot(dx,dy),max=57;
     if(len>max){dx*=max/len;dy*=max/len;}
     joy.x=dx/max; joy.y=dy/max; setKnob(dx,dy);
   } else if(lookDrag===null){
@@ -1525,7 +1643,7 @@ addEventListener('pointerdown',e=>{
 addEventListener('pointermove',e=>{
   if(joy.active&&e.pointerId===joy.id){
     let dx=e.clientX-joy.cx,dy=e.clientY-joy.cy;
-    const len=Math.hypot(dx,dy),max=44;
+    const len=Math.hypot(dx,dy),max=57;
     if(len>max){dx*=max/len;dy*=max/len;}
     joy.x=dx/max; joy.y=dy/max; setKnob(dx,dy);
   } else if(lookDrag&&e.pointerId===lookDrag.id){
