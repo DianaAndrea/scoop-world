@@ -291,13 +291,15 @@ const mixOn={};         // key -> bool (layer audible)
 /* ================= WORLDS (levels) ================= */
 const LEVELS=[
   {name:'Sugarcloud World',emoji:'🍭',desc:'the OG candy party where it all began',
-   bpm:124,sky:['#ff3fbe','#e045e8','#9a4ff0','#7a55ee'],fog:0xc95fe0,
+   audio:'bubblegum-bounce',
+   bpm:126,sky:['#ff3fbe','#e045e8','#9a4ff0','#7a55ee'],fog:0xc95fe0,
    ground:'#a86ae8',hue:[255,340],hemi:[0xffb8ea,0x7a4fd0],sun:0xfff2e0,
    roots:[55,55,65.4,49],
    chords:[[220,261.6,329.6],[220,277.2,329.6],[261.9,220,261.6],[196,246.9,293.7]],
    spots:[[19,14],[-21,17],[27,-20],[-30,-14],[3,36],[-8,-38]]},
   {name:'Minty Meadow',emoji:'🍃',desc:'slow chill grooves in a fresh green valley',
-   bpm:104,sky:['#3fe8c8','#45d8e0','#4fa8f0','#5580ee'],fog:0x5fd8c8,
+   audio:'cotton-cloud',
+   bpm:96,sky:['#3fe8c8','#45d8e0','#4fa8f0','#5580ee'],fog:0x5fd8c8,
    ground:'#5fd8a8',hue:[120,210],hemi:[0xb8ffe8,0x2f8a7a],sun:0xf0ffe0,
    roots:[49,49,58.3,43.7],
    chords:[[196,246.9,293.7],[196,261.6,329.6],[174.6,220,261.6],[164.8,207.7,246.9]],
@@ -1039,7 +1041,11 @@ function ctx(){
 /* ---- real recorded stems (WAV), loaded per-song and looped in the DJ deck
    with the same per-flavor gain/analyser routing as the synth layers ---- */
 const AUDIO_STEM_ORDER=['drums','strawberry','mint','blueberry','mango','grape','lemon'];
-const REAL_SONGS={ 'sugar-rush':{bpm:142,loopSeconds:27.042} };
+const REAL_SONGS={
+  'bubblegum-bounce':{bpm:126,loopSeconds:30.476},
+  'cotton-cloud':{bpm:96,loopSeconds:40.0},
+  'sugar-rush':{bpm:142,loopSeconds:27.042}
+};
 const audioBufferCache={}, audioLoadPromises={};
 function loadRealAudio(slug){
   if(audioBufferCache[slug])return Promise.resolve(audioBufferCache[slug]);
