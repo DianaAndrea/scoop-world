@@ -73,23 +73,28 @@
   #stickLabel{font-size:10px;font-weight:700;letter-spacing:.32em;text-transform:uppercase;
     color:#fff;opacity:.95;text-shadow:0 1px 8px rgba(90,20,140,.9)}
 
-  /* ---- DJ mix panel ---- */
-  #mixPanel{position:fixed;right:14px;bottom:24px;z-index:16;display:none;flex-direction:column;align-items:center;gap:9px;
-    pointer-events:auto;padding:14px 12px;border-radius:26px;
+  /* ---- DJ mix panel: waveform mixer ---- */
+  #mixPanel{position:fixed;right:14px;bottom:24px;z-index:16;display:none;flex-direction:column;align-items:stretch;gap:8px;
+    pointer-events:auto;padding:14px 14px;border-radius:26px;width:216px;
     background:rgba(60,15,95,.42);border:1px solid rgba(255,255,255,.4);
     backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
     box-shadow:0 10px 34px rgba(50,5,90,.45)}
   #mixPanel.show{display:flex}
   #mixPanel .mixTitle{font-family:'Titan One',cursive;font-size:12px;letter-spacing:.08em;
-    text-shadow:0 2px 0 #d035ae}
-  .flavBtn{width:54px;height:54px;border-radius:50%;border:3px solid rgba(255,255,255,.5);cursor:pointer;
-    font-size:24px;line-height:1;display:flex;align-items:center;justify-content:center;
+    text-shadow:0 2px 0 #d035ae;text-align:center;margin-bottom:2px}
+  .mixRow{display:flex;align-items:center;gap:9px;animation:rowIn .3s ease}
+  @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .flavToggle{width:38px;height:38px;flex:none;border-radius:50%;border:2.5px solid rgba(255,255,255,.5);cursor:pointer;
+    font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;
     background:rgba(255,255,255,.14);transition:transform .12s, box-shadow .2s, background .2s;
-    filter:grayscale(.9);position:relative}
-  .flavBtn.on{filter:none;background:var(--fc);box-shadow:0 0 18px var(--fc), inset 0 -4px 10px rgba(0,0,0,.18);
-    border-color:#fff;transform:scale(1.06)}
-  .flavBtn:active{transform:scale(.92)}
-  @media (max-width:700px){ .flavBtn{width:48px;height:48px;font-size:21px} #mixPanel{right:10px;bottom:20px;gap:7px} }
+    filter:grayscale(.85);padding:0}
+  .flavToggle.on{filter:none;background:var(--fc);box-shadow:0 0 14px var(--fc), inset 0 -3px 8px rgba(0,0,0,.18);
+    border-color:#fff;transform:scale(1.05)}
+  .flavToggle:active{transform:scale(.9)}
+  .waveWrap{flex:1;height:34px;border-radius:11px;background:rgba(0,0,0,.28);
+    border:1px solid rgba(255,255,255,.22);overflow:hidden;position:relative}
+  .waveCanvas{width:100%;height:100%;display:block}
+  @media (max-width:700px){ #mixPanel{width:184px;right:10px;bottom:20px;padding:11px 11px} .flavToggle{width:34px;height:34px;font-size:16px} .waveWrap{height:28px} }
 
   /* ---- HUD buttons (map + settings) ---- */
   #hudBtns{position:absolute;top:56px;right:16px;display:flex;flex-direction:column;gap:8px;pointer-events:auto}
@@ -99,6 +104,17 @@
     box-shadow:0 4px 14px rgba(70,15,110,.35);transition:transform .12s}
   .hudBtn:active{transform:scale(.9)}
   @media (max-width:700px){ #hudBtns{top:74px;right:12px} .hudBtn{width:40px;height:40px;font-size:18px} }
+
+  /* ---- minimap ---- */
+  #minimapWrap{position:absolute;top:80px;left:18px;width:118px;height:118px;pointer-events:none}
+  #minimap{width:100%;height:100%;border-radius:50%;
+    border:2px solid rgba(255,255,255,.55);background:rgba(60,15,95,.35);
+    box-shadow:0 6px 20px rgba(70,15,110,.4), inset 0 0 18px rgba(255,255,255,.1);
+    backdrop-filter:blur(4px)}
+  #minimapLabel{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;
+    font-weight:700;letter-spacing:.24em;text-transform:uppercase;opacity:.85;white-space:nowrap;
+    text-shadow:0 1px 6px rgba(90,20,140,.8)}
+  @media (max-width:700px){ #minimapWrap{top:70px;left:14px;width:96px;height:96px} #minimapLabel{font-size:8px;bottom:-16px} }
 
   /* ---- overlays (world map + settings) ---- */
   .overlay{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
@@ -162,6 +178,10 @@
 <div id="hud">
   <div class="brand">ICE CREAM ADVENTURE</div>
   <div id="quest">🍦 Flavors mixed: <span id="questN">0</span>/6</div>
+  <div id="minimapWrap">
+    <canvas id="minimap" width="160" height="160"></canvas>
+    <div id="minimapLabel">Map</div>
+  </div>
   <div id="mixPill">warming up the decks…</div>
   <div class="keys" id="keysHint">Use the wheel to roam · drag to look · find the glowing scoops! · 🗺️ M = world map</div>
   <div id="toast"></div>
@@ -182,7 +202,7 @@
 
 <div id="mixPanel">
   <div class="mixTitle">DJ MIX</div>
-  <!-- flavor buttons injected -->
+  <div id="mixRows"><!-- flavor rows injected --></div>
 </div>
 
 <div class="overlay" id="mapOverlay">
@@ -955,10 +975,25 @@ function confettiBurst(pos,color=null,count=16){
 let audioCtx=null,sfxBus=null,musicBus=null;
 let musicStart=0,started=false,megaMix=false;
 let BPM=124, BEAT=60/BPM;
+/* per-flavor gain -> analyser, so the DJ mixer can draw each layer's real
+   live waveform instead of a fake animation. Each flavor's notes route
+   through its own gain node; the analyser sits inline (pass-through) and
+   feeds the visualizer, then continues on to the shared bar bus. */
+const flavorGain={}, flavorAnalyser={};
 
-function ctx(){ if(!audioCtx){ audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  sfxBus=audioCtx.createGain(); sfxBus.gain.value=save.settings.sfx/100; sfxBus.connect(audioCtx.destination);}
-  audioCtx.resume(); return audioCtx; }
+function ctx(){
+  if(!audioCtx){
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    sfxBus=audioCtx.createGain(); sfxBus.gain.value=save.settings.sfx/100; sfxBus.connect(audioCtx.destination);
+    FLAVORS.forEach(f=>{
+      const g=audioCtx.createGain(); g.gain.value=1;
+      const an=audioCtx.createAnalyser(); an.fftSize=256; an.smoothingTimeConstant=.55;
+      g.connect(an);
+      flavorGain[f.key]=g; flavorAnalyser[f.key]=an;
+    });
+  }
+  audioCtx.resume(); return audioCtx;
+}
 
 function kick(t,bus,pitch=150){ const a=ctx(),o=a.createOscillator(),g=a.createGain();
   o.frequency.setValueAtTime(pitch,t); o.frequency.exponentialRampToValueAtTime(44,t+.12);
@@ -1056,6 +1091,12 @@ function startGroove(){
   bus.connect(a.destination);
   musicBus=bus;
   musicStart=a.currentTime+.1;
+  // (re)wire each flavor's analyser into this bar's bus — the bus is
+  // recreated on every world travel, so this must be redone each start
+  FLAVORS.forEach(f=>{
+    try{flavorAnalyser[f.key].disconnect();}catch(e){}
+    flavorAnalyser[f.key].connect(bus);
+  });
   let n=0;
   function schedule(){
     if(!barRunning)return;
@@ -1067,8 +1108,9 @@ function startGroove(){
       noiseHit(t+BEAT/2,bus,.05,7000,.15);
       if(b===1||b===3)noiseHit(t,bus,.09,1800,.2);
     }
-    /* flavor layers */
-    FLAVORS.forEach(f=>{ if(mixOn[f.key]) LAYERS[f.key](t0,n,bus); });
+    /* flavor layers — each routed through its own gain/analyser so the
+       mixer widget can draw its real waveform */
+    FLAVORS.forEach(f=>{ if(mixOn[f.key]) LAYERS[f.key](t0,n,flavorGain[f.key]); });
     if(megaMix) LAYERS.mega(t0,n,bus);
     n++;
     barTimers.push(setTimeout(schedule,BEAT*4*1000-90));
@@ -1170,12 +1212,16 @@ function updateHUD(){
   }
 }
 
-/* mix panel buttons */
-const flavBtns={};
+/* DJ mixer rows: toggle button + live waveform canvas per flavor */
+const mixRowsEl=document.getElementById('mixRows');
+const flavBtns={}, flavRows={}, waveCtxs={}, waveBufs={};
 FLAVORS.forEach(f=>{
+  const row=document.createElement('div');
+  row.className='mixRow'; row.style.display='none';
+
   const b=document.createElement('button');
-  b.className='flavBtn'; b.style.setProperty('--fc',f.css);
-  b.textContent=f.emoji; b.style.display='none';
+  b.className='flavToggle'; b.style.setProperty('--fc',f.css);
+  b.textContent=f.emoji;
   b.title=f.name+' — '+f.desc;
   b.addEventListener('pointerup',e=>{
     e.stopPropagation();
@@ -1183,9 +1229,43 @@ FLAVORS.forEach(f=>{
     b.classList.toggle('on',mixOn[f.key]);
     popSfx(); updateHUD();
   });
-  mixPanel.appendChild(b);
-  flavBtns[f.key]=b;
+
+  const waveWrap=document.createElement('div');
+  waveWrap.className='waveWrap';
+  const canvas=document.createElement('canvas');
+  canvas.className='waveCanvas'; canvas.width=150; canvas.height=34;
+  waveWrap.appendChild(canvas);
+
+  row.appendChild(b); row.appendChild(waveWrap);
+  mixRowsEl.appendChild(row);
+
+  flavBtns[f.key]=b; flavRows[f.key]=row;
+  waveCtxs[f.key]=canvas.getContext('2d');
 });
+
+function drawWaveforms(){
+  FLAVORS.forEach(f=>{
+    if(flavRows[f.key].style.display==='none')return;
+    const c=waveCtxs[f.key], w=150, h=34;
+    c.clearRect(0,0,w,h);
+    const an=flavorAnalyser[f.key];
+    if(an&&mixOn[f.key]){
+      let buf=waveBufs[f.key];
+      if(!buf||buf.length!==an.fftSize){ buf=new Uint8Array(an.fftSize); waveBufs[f.key]=buf; }
+      an.getByteTimeDomainData(buf);
+      c.strokeStyle=f.css; c.lineWidth=2; c.beginPath();
+      const step=w/(buf.length-1);
+      for(let i=0;i<buf.length;i++){
+        const y=(buf[i]/255)*h;
+        i===0?c.moveTo(0,y):c.lineTo(i*step,y);
+      }
+      c.stroke();
+    } else {
+      c.strokeStyle='rgba(255,255,255,.28)'; c.lineWidth=2;
+      c.beginPath(); c.moveTo(0,h/2); c.lineTo(w,h/2); c.stroke();
+    }
+  });
+}
 
 /* =====================================================================
    WORLDS: travel, theming, and the map screen
@@ -1209,7 +1289,7 @@ function applyLevel(i){
   orbiters.length=0;
   FLAVORS.forEach(f=>{
     flavorState[f.key]='hidden'; mixOn[f.key]=false;
-    flavBtns[f.key].style.display='none'; flavBtns[f.key].classList.remove('on');
+    flavRows[f.key].style.display='none'; flavBtns[f.key].classList.remove('on');
   });
   spawnPickups(L.spots);
   const mixedSaved=save.mixed[i]||[];
@@ -1217,7 +1297,7 @@ function applyLevel(i){
     const p=pickups.find(p=>p.flavor.key===k);
     if(p){ p.taken=true; scene.remove(p.grp); }
     flavorState[k]='mixed'; mixOn[k]=true;
-    flavBtns[k].style.display='flex'; flavBtns[k].classList.add('on');
+    flavRows[k].style.display='flex'; flavBtns[k].classList.add('on');
   });
   if(mixedSaved.length===FLAVORS.length)megaMix=true;
   player.position.set(0,0,8);
@@ -1302,6 +1382,60 @@ addEventListener('keydown',e=>{
   }
 });
 
+/* =====================================================================
+   MINIMAP — player stays put, the world pans underneath
+   ===================================================================== */
+const MM_SIZE=160, MM_R=MM_SIZE/2, MM_SCALE=1.55, WORLD_R=60;
+const mmCanvas=document.getElementById('minimap');
+const mmCtx=mmCanvas.getContext('2d');
+function drawMinimap(){
+  mmCtx.clearRect(0,0,MM_SIZE,MM_SIZE);
+  mmCtx.save();
+  mmCtx.beginPath(); mmCtx.arc(MM_R,MM_R,MM_R-2,0,7); mmCtx.clip();
+
+  const L=LEVELS[curLevel];
+  mmCtx.fillStyle=L.ground; mmCtx.fillRect(0,0,MM_SIZE,MM_SIZE);
+
+  const px=player.position.x, pz=player.position.z;
+  const toMap=(x,z)=>[MM_R+(x-px)*MM_SCALE, MM_R+(z-pz)*MM_SCALE];
+
+  // world boundary ring (shows how close to the edge you are)
+  const [wcx,wcy]=toMap(0,0);
+  mmCtx.strokeStyle='rgba(255,255,255,.35)'; mmCtx.lineWidth=3;
+  mmCtx.beginPath(); mmCtx.arc(wcx,wcy,WORLD_R*MM_SCALE,0,7); mmCtx.stroke();
+
+  // DJ deck beacon
+  const [dx,dy]=toMap(DECK_POS.x,DECK_POS.z);
+  mmCtx.fillStyle='#FFE23D';
+  mmCtx.beginPath(); mmCtx.arc(dx,dy,5,0,7); mmCtx.fill();
+  mmCtx.strokeStyle='rgba(255,255,255,.8)'; mmCtx.lineWidth=1.5; mmCtx.stroke();
+
+  // remaining flavor scoops
+  for(const p of pickups){
+    if(p.taken)continue;
+    const [x,y]=toMap(p.grp.position.x,p.grp.position.z);
+    mmCtx.fillStyle=p.flavor.css;
+    mmCtx.beginPath(); mmCtx.arc(x,y,4,0,7); mmCtx.fill();
+    mmCtx.strokeStyle='rgba(255,255,255,.9)'; mmCtx.lineWidth=1; mmCtx.stroke();
+  }
+
+  mmCtx.restore();
+
+  // outer ring
+  mmCtx.strokeStyle='rgba(255,255,255,.5)'; mmCtx.lineWidth=2;
+  mmCtx.beginPath(); mmCtx.arc(MM_R,MM_R,MM_R-2,0,7); mmCtx.stroke();
+
+  // player marker, fixed at center, rotated to facing direction
+  mmCtx.save();
+  mmCtx.translate(MM_R,MM_R);
+  mmCtx.rotate(-player.rotation.y);
+  mmCtx.beginPath();
+  mmCtx.moveTo(0,8); mmCtx.lineTo(6,-7); mmCtx.lineTo(-6,-7); mmCtx.closePath();
+  mmCtx.fillStyle='#FF3FAE'; mmCtx.fill();
+  mmCtx.strokeStyle='#fff'; mmCtx.lineWidth=1.5; mmCtx.stroke();
+  mmCtx.restore();
+}
+
 function collectFlavor(p){
   p.taken=true;
   flavorState[p.flavor.key]='carried';
@@ -1325,7 +1459,7 @@ function doDeposit(f){
   save.mixed[curLevel]=save.mixed[curLevel]||[];
   if(!save.mixed[curLevel].includes(f.key))save.mixed[curLevel].push(f.key);
   persist();
-  flavBtns[f.key].style.display='flex';
+  flavRows[f.key].style.display='flex';
   flavBtns[f.key].classList.add('on');
   /* remove orbiter for this flavor */
   const oi=orbiters.findIndex(o=>o.flavor.key===f.key);
@@ -1631,6 +1765,8 @@ function animate(){
   dust.material.opacity=.55+punch*.35;
 
   renderer.render(scene,camera);
+  drawMinimap();
+  drawWaveforms();
 }
 /* restore the saved world (theme + progress) before the first frame */
 applyLevel(save.level);
