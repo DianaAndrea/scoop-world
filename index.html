@@ -4,8 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ice Cream Adventure — Sugarcloud World</title>
-<link href="https://fonts.googleapis.com/css2?family=Titan+One&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+  /* fonts bundled locally (SIL OFL) so the game renders offline — see fonts/ */
+  @font-face{font-family:'Titan One';font-style:normal;font-weight:400;font-display:swap;
+    src:url('fonts/titan-one-400.woff2') format('woff2')}
+  @font-face{font-family:'Outfit';font-style:normal;font-weight:400;font-display:swap;
+    src:url('fonts/outfit-400.woff2') format('woff2')}
+  @font-face{font-family:'Outfit';font-style:normal;font-weight:600;font-display:swap;
+    src:url('fonts/outfit-600.woff2') format('woff2')}
+  @font-face{font-family:'Outfit';font-style:normal;font-weight:700;font-display:swap;
+    src:url('fonts/outfit-700.woff2') format('woff2')}
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;overflow:hidden;background:#a94fd6;font-family:'Outfit',sans-serif;color:#fff;touch-action:none}
   canvas{display:block;filter:saturate(1.3) contrast(1.06)}
@@ -31,28 +39,29 @@
   #hud.show{display:block}
   #hud .brand{position:absolute;top:18px;left:20px;font-family:'Titan One',cursive;font-size:34px;color:#fff;
     text-shadow:0 3px 0 #d035ae, 0 6px 18px rgba(90,20,140,.7)}
-  #quest{position:absolute;top:70px;left:20px;font-size:22px;font-weight:800;letter-spacing:.04em;
-    padding:13px 26px;border-radius:999px;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5);
-    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6)}
-  #mixPill{position:absolute;top:18px;right:18px;font-size:19px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
-    padding:15px 28px;border-radius:999px;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5);
-    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:44vw;
-    overflow:hidden;text-overflow:ellipsis}
-  /* ---- middle-top mix-speed score card ---- */
-  #scoreCard{position:absolute;top:16px;left:50%;transform:translateX(-50%);
-    display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 30px 11px;border-radius:22px;
+  /* the goal (flavor counter) sits front-and-center, guidance right below it */
+  #quest{position:absolute;top:16px;left:50%;transform:translateX(-50%);font-size:22px;font-weight:800;letter-spacing:.04em;
+    padding:13px 28px;border-radius:999px;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.5);
+    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap}
+  #mixPill{position:absolute;top:74px;left:50%;transform:translateX(-50%);font-size:16px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+    padding:11px 24px;border-radius:999px;background:rgba(255,255,255,.16);border:2px solid rgba(255,255,255,.42);
+    backdrop-filter:blur(8px);text-shadow:0 1px 6px rgba(90,20,140,.6);white-space:nowrap;max-width:56vw;
+    overflow:hidden;text-overflow:ellipsis;text-align:center}
+  /* ---- top-right mix-speed score card ---- */
+  #scoreCard{position:absolute;top:16px;right:18px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;padding:9px 26px 11px;border-radius:22px;
     background:linear-gradient(165deg,rgba(44,10,80,.52),rgba(24,6,48,.62));
     border:2px solid rgba(255,255,255,.42);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
     box-shadow:0 10px 34px rgba(30,2,60,.45), inset 0 1px 0 rgba(255,255,255,.22);
-    text-shadow:0 1px 6px rgba(90,20,140,.6);text-align:center;min-width:190px}
+    text-shadow:0 1px 6px rgba(90,20,140,.6);text-align:center;min-width:180px}
   #scoreCard .scLabel{font-size:12px;font-weight:800;letter-spacing:.28em;text-transform:uppercase;opacity:.85}
-  #scoreCard .scTime{font-family:'Titan One',cursive;font-size:34px;line-height:1.05;color:#FFE85C;
+  #scoreCard .scTime{font-family:'Titan One',cursive;font-size:32px;line-height:1.05;color:#FFE85C;
     text-shadow:0 2px 0 #d035ae,0 4px 14px rgba(255,232,92,.4)}
   #scoreCard .scSub{font-size:12px;font-weight:700;letter-spacing:.04em;opacity:.92;margin-top:1px}
   #scoreCard.run .scTime{color:#8FE8FF}
   #scoreCard.win .scTime{color:#35E8A8}
   #scoreCard.pulse{animation:scPulse .55s ease}
-  @keyframes scPulse{0%{transform:translateX(-50%) scale(1)}40%{transform:translateX(-50%) scale(1.14)}100%{transform:translateX(-50%) scale(1)}}
+  @keyframes scPulse{0%{transform:scale(1)}40%{transform:scale(1.14)}100%{transform:scale(1)}}
   #hud .keys{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);font-size:13px;letter-spacing:.18em;
     text-transform:uppercase;opacity:.9;transition:opacity 1s;text-shadow:0 1px 8px rgba(90,20,140,.8);text-align:center;width:92%}
   #hud .keys.hide{opacity:0}
@@ -63,12 +72,12 @@
   #toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
 
   @media (max-width:700px){
-    #hud .brand{font-size:20px;top:12px}
-    #quest{top:44px;font-size:14px;padding:8px 15px}
-    #mixPill{font-size:12px;padding:9px 15px;max-width:38vw}
-    #scoreCard{top:10px;min-width:0;padding:6px 16px 7px}
+    #hud .brand{font-size:18px;top:12px}
+    #quest{top:48px;font-size:13px;padding:7px 14px}
+    #mixPill{top:82px;font-size:11px;padding:8px 14px;max-width:62vw}
+    #scoreCard{top:10px;right:10px;min-width:0;padding:6px 14px 7px}
     #scoreCard .scLabel{font-size:9px;letter-spacing:.18em}
-    #scoreCard .scTime{font-size:24px}
+    #scoreCard .scTime{font-size:22px}
     #scoreCard .scSub{font-size:9px}
   }
 
@@ -144,16 +153,16 @@
   }
 
   /* ---- HUD buttons (map + settings) ---- */
-  #hudBtns{position:absolute;top:84px;right:18px;display:flex;flex-direction:column;gap:12px;pointer-events:auto}
+  #hudBtns{position:absolute;top:112px;right:18px;display:flex;flex-direction:column;gap:12px;pointer-events:auto}
   .hudBtn{width:72px;height:72px;border-radius:50%;border:2px solid rgba(255,255,255,.5);cursor:pointer;
     font-size:28px;line-height:1;display:flex;align-items:center;justify-content:center;
     background:rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
     box-shadow:0 6px 18px rgba(70,15,110,.4);transition:transform .12s}
   .hudBtn:active{transform:scale(.9)}
-  @media (max-width:700px){ #hudBtns{top:84px;right:12px} .hudBtn{width:48px;height:48px;font-size:22px} }
+  @media (max-width:700px){ #hudBtns{top:82px;right:10px} .hudBtn{width:48px;height:48px;font-size:22px} }
 
   /* ---- minimap ---- */
-  #minimapWrap{position:absolute;top:132px;left:20px;width:132px;height:132px;pointer-events:none}
+  #minimapWrap{position:absolute;top:80px;left:20px;width:132px;height:132px;pointer-events:none}
   #minimap{width:100%;height:100%;border-radius:50%;
     border:2px solid rgba(255,255,255,.55);background:rgba(60,15,95,.35);
     box-shadow:0 6px 20px rgba(70,15,110,.4), inset 0 0 18px rgba(255,255,255,.1);
@@ -161,7 +170,7 @@
   #minimapLabel{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;
     font-weight:700;letter-spacing:.24em;text-transform:uppercase;opacity:.85;white-space:nowrap;
     text-shadow:0 1px 6px rgba(90,20,140,.8)}
-  @media (max-width:700px){ #minimapWrap{top:88px;left:14px;width:100px;height:100px} #minimapLabel{font-size:8px;bottom:-16px} }
+  @media (max-width:700px){ #minimapWrap{top:120px;left:14px;width:100px;height:100px} #minimapLabel{font-size:8px;bottom:-16px} }
 
   /* ---- overlays (world map + settings) ---- */
   .overlay{position:fixed;inset:0;z-index:40;display:none;flex-direction:column;align-items:center;justify-content:center;
