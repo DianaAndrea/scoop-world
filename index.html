@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ice Cream Adventure — Sugarcloud World</title>
+<meta name="description" content="A candy-coated DJ adventure: roam five worlds as a little ice cream, collect flavor scoops, and mix them into a live song at the DJ deck.">
+<meta property="og:title" content="Ice Cream Adventure — Sugarcloud World">
+<meta property="og:description" content="Roam five candy worlds, collect flavor scoops, and mix them into a live song at the DJ deck.">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#a94fd6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8D%A6%3C/text%3E%3C/svg%3E">
 <style>
   /* fonts bundled locally (SIL OFL) so the game renders offline — see fonts/ */
   @font-face{font-family:'Titan One';font-style:normal;font-weight:400;font-display:swap;
@@ -1345,12 +1351,16 @@ function ctx(){
       g.connect(an);
       flavorGain[f.key]=g; flavorAnalyser[f.key]=an;
     });
-    Object.keys(REAL_SONGS).forEach(slug=>loadRealAudio(slug).catch(()=>{}));
+    /* this world's song first, then quietly warm up the others one by one */
+    const first=LEVELS[curLevel].audio;
+    const rest=Object.keys(REAL_SONGS).filter(s=>s!==first);
+    const next=()=>{ const s=rest.shift(); if(s)loadRealAudio(s).catch(()=>{}).then(next); };
+    if(first)loadRealAudio(first).catch(()=>{}).then(next); else next();
   }
   audioCtx.resume(); return audioCtx;
 }
 
-/* ---- real recorded stems (WAV), loaded per-song and looped in the DJ deck
+/* ---- real recorded stems (FLAC), loaded per-song and looped in the DJ deck
    with the same per-flavor gain/analyser routing as the synth layers ---- */
 const AUDIO_STEM_ORDER=['drums','strawberry','mint','blueberry','mango','grape','lemon'];
 const REAL_SONGS={
@@ -1358,18 +1368,28 @@ const REAL_SONGS={
   'cotton-cloud':{bpm:96,loopSeconds:40.0},
   'sugar-rush':{bpm:142,loopSeconds:27.042}
 };
-const audioBufferCache={}, audioLoadPromises={};
+const audioBufferCache={}, audioLoadPromises={}, stemFetches={};
+/* download a song's stems (lossless FLAC). Needs no AudioContext, so the
+   starting world's song can begin downloading before the first click. */
+function fetchStems(slug){
+  return stemFetches[slug]||(stemFetches[slug]=Promise.all(AUDIO_STEM_ORDER.map((name,idx)=>
+    fetch(`audio/${slug}/${String(idx).padStart(2,'0')}-${name}.flac`)
+      .then(r=>{ if(!r.ok)throw new Error('stem '+r.status); return r.arrayBuffer(); }))));
+}
 function loadRealAudio(slug){
   if(audioBufferCache[slug])return Promise.resolve(audioBufferCache[slug]);
   if(audioLoadPromises[slug])return audioLoadPromises[slug];
   const a=ctx();
-  const p=Promise.all(AUDIO_STEM_ORDER.map((name,idx)=>
-    fetch(`audio/${slug}/${String(idx).padStart(2,'0')}-${name}.wav`)
-      .then(r=>r.arrayBuffer()).then(buf=>a.decodeAudioData(buf))
-  )).then(buffers=>{
-    const out={}; AUDIO_STEM_ORDER.forEach((name,i)=>out[name]=buffers[i]);
-    return audioBufferCache[slug]=out;
-  });
+  const p=fetchStems(slug)
+    .then(raw=>Promise.all(raw.map(buf=>a.decodeAudioData(buf))))
+    .then(buffers=>{
+      const out={}; AUDIO_STEM_ORDER.forEach((name,i)=>out[name]=buffers[i]);
+      audioBufferCache[slug]=out;
+      /* if this world is still on the stand-in synth groove, swap the real song in */
+      if(barRunning&&!realSources.length&&LEVELS[curLevel].audio===slug){ stopGroove(); startGroove(); }
+      return out;
+    });
+  p.catch(()=>{ delete audioLoadPromises[slug]; delete stemFetches[slug]; });
   return audioLoadPromises[slug]=p;
 }
 
@@ -2372,6 +2392,8 @@ function animate(){
 }
 /* restore the saved world (theme + progress) before the first frame */
 applyLevel(save.level);
+/* start downloading this world's song right away, before the first click */
+if(LEVELS[curLevel].audio)fetchStems(LEVELS[curLevel].audio).catch(()=>{});
 animate();
 
 addEventListener('resize',()=>{
